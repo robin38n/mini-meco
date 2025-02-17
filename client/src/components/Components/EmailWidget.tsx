@@ -44,7 +44,6 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
         {
             if(exception instanceof IllegalArgumentException)
             {
-                // TODO: could give different type of negative feedback based on current action
                 errors.emailErrors = exception.message;
                 setErrors(errors);
             }
