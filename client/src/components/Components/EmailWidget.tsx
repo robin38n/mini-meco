@@ -12,6 +12,7 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
     const [values, setValues] = useState({email: ''});
     // create empty error object to track validation errors
     const [errors, setErrors] = useState({});
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 
     const validateEmailInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,9 +26,28 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
         onEmailChange(currentEmailValue);
 
         const errors = {emailErrors: ''};
+        // Reset success message
+        setSuccessMessage(null);
 
-        if(!isEmail(values.email)){
-            errors.emailErrors = 'Email is not valid';
+        // Using EmailAddress value type to check the validity of the user input
+        try {
+            new Email(currentEmailValue);
+            setErrors({});
+            // Give different feedback based on current action
+            if (action === "Registration") {
+                setSuccessMessage("E-Mail address is valid for registration!");
+            } else if (action === "Login") {
+                setSuccessMessage("E-Mail address valid for login!");
+            }
+        }
+        catch (exception)
+        {
+            if(exception instanceof IllegalArgumentException)
+            {
+                // TODO: could give different type of negative feedback based on current action
+                errors.emailErrors = exception.message;
+                setErrors(errors);
+            }
         }
     }
 
@@ -40,6 +60,7 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
                 value={values.email}
                 onChange={validateEmailInput} />
             <br />
+            {/* Show negative feedback */}
             {Object.entries(errors).map(([key, error]) => (
                 <span key={`${key}: ${String(error)}`}
                       style={{
@@ -49,6 +70,17 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
                     {String(error)}
                     </span>
             ))}
+            {/* Show positive feedback */}
+            {successMessage && (
+                <div
+                    style={{
+                        fontWeight: "bold",
+                        color: "green",
+                    }}
+                >
+                    {successMessage}
+                </div>
+            )}
         </>
     )
 }
