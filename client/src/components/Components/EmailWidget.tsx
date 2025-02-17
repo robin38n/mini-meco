@@ -1,4 +1,6 @@
 import React, {useState} from "react";
+import { Email } from '../../../../server/src/email';
+import {IllegalArgumentException} from "../../../../server/src/Exceptions/IllegalArgumentException.ts";
 
 interface EmailWidgetProps {
     onEmailChange: (email: string) => void; // Callback-Prop
@@ -15,26 +17,18 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
     const validateEmailInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
 
-        setEmail(e);
+        // Get email input directly from the ChangeEvent
+        const currentEmailValue = e.target.value;
+        // Set state to current value of email input
+        setValues({ email: currentEmailValue });
+        // Callback to parent-component-handler
+        onEmailChange(currentEmailValue);
+
         const errors = {emailErrors: ''};
 
         if(!isEmail(values.email)){
             errors.emailErrors = 'Email is not valid';
         }
-
-        //testing purposes
-        console.log("Emails data:", values);
-        console.log("Error data:", errors);
-
-        setErrors(errors);
-
-        //if (!Object.keys(errors).length) {
-        //    alert(JSON.stringify(values, null, 2));
-        //}
-    }
-
-    const setEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setValues((values) => ({...values, email: e.target.value}));
     }
 
     return (
