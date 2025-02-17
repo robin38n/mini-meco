@@ -4,15 +4,21 @@ import UserNameIcon from "./../../assets/UserNameIcon.png";
 import EmailIcon from "./../../assets/EmailIcon.png";
 import PasswordIcon from "./../../assets/PasswordIcon.png";
 import { useNavigate } from "react-router-dom";
+import EmailWidget from "@/components/Components/EmailWidget.tsx";
 
 const LoginScreen = () => {
   const navigate = useNavigate();
-  const [action, setAction] = useState("Login");
+  const [action, setAction] = useState<"Registration" | "Login">("Login");
   const [validationOn, setValidationOn] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
+
+  // Updates email based on the value from EmailWidget
+  const handleEmailChange = (newEmail: string) => {
+    setEmail(newEmail);
+  };
 
   const handleSubmit = async () => {
     if (!validationOn) {
@@ -88,13 +94,13 @@ const LoginScreen = () => {
 
           <div className={"input" + (validationOn && !email ? " validation" : "")}>
             <img className="email-icon" src={EmailIcon} alt="" />
-            <input
-              className={"inputBox"}
-              type="email"
-              placeholder="Please enter your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <EmailWidget onEmailChange={handleEmailChange}
+                         action={action}/>
+            {validationOn && !email && (
+                <span style={{ color: "red", fontWeight: "bold" }}>
+                Please enter a valid email address.
+              </span>
+            )}
           </div>
           <div className={"input" + (validationOn && !password ? " validation" : "")}>
             <img className="password-icon" src={PasswordIcon} alt="" />

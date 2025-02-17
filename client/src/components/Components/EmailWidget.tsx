@@ -1,9 +1,11 @@
 import React, {useState} from "react";
 
-const isEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(email);
+interface EmailWidgetProps {
+    onEmailChange: (email: string) => void; // Callback-Prop
+    action: "Registration" | "Login"; // current action
+}
 
-const EmailWidget: React.FC = () =>{
-    // create state variables for state managing of the email input
+const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
     // create values to store the email inputs
     const [values, setValues] = useState({email: ''});
     // create empty error object to track validation errors
