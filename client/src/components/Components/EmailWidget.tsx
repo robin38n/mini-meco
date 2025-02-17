@@ -11,7 +11,8 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
     // create empty error object to track validation errors
     const [errors, setErrors] = useState({});
 
-    const ValidateEmailInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    const validateEmailInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
 
         setEmail(e);
@@ -43,7 +44,7 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
                 type="email"
                 placeholder="Please enter your email address"
                 value={values.email}
-                onChange={ValidateEmailInput} />
+                onChange={validateEmailInput} />
             <br />
             {Object.entries(errors).map(([key, error]) => (
                 <span key={`${key}: ${String(error)}`}
