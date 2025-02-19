@@ -4,7 +4,6 @@ import UserNameIcon from "./../../assets/UserNameIcon.png";
 import EmailIcon from "./../../assets/EmailIcon.png";
 import PasswordIcon from "./../../assets/PasswordIcon.png";
 import { useNavigate } from "react-router-dom";
-import { Password } from "server/src/Models/Password.ts";
 import PasswordWidget from "@/components/Components/PasswordWidget";
 
 const LoginScreen = () => {
@@ -12,32 +11,27 @@ const LoginScreen = () => {
   const [action, setAction] = useState("Login");
   const [validationOn, setValidationOn] = useState(false);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(Password.create(""));
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
 
   const handlePasswordChange = (value: string) => {
-    setPassword(Password.create(value));
+    setPassword(value);
   };
 
   const handleSubmit = async () => {
-    console.log(password.getValue());
     if (!validationOn) {
       setValidationOn(true);
     }
 
-    if (
-      !email ||
-      !password.getValue() ||
-      (action === "Registration" && !name)
-    ) {
+    if (!email || !password || (action === "Registration" && !name)) {
       return;
     }
 
     const endpoint = action === "Registration" ? "/user" : "/session";
     const body: { [key: string]: string } = {
       email,
-      password: password.getValue(),
+      password,
     };
     // Add name to the body if the action is Registration (not Login)
     if (action === "Registration") {
@@ -116,8 +110,7 @@ const LoginScreen = () => {
           </div>
           <div
             className={
-              "input" +
-              (validationOn && !password.getValue() ? " validation" : "")
+              "input" + (validationOn && !password ? " validation" : "")
             }
           >
             <img className="password-icon" src={PasswordIcon} alt="" />

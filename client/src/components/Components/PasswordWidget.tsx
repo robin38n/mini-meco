@@ -1,18 +1,43 @@
 import React from "react";
-import { Password, PasswordStrength } from "server/src/Models/Password.ts";
 
-// Helper function to convert password strength to a descriptive label and color
-const getStrengthInfo = (strength: PasswordStrength) => {
+const containsLowerAndUpperCase = (value: string): boolean =>
+  /(?=.*[a-z])(?=.*[A-Z])/.test(value);
+const containsNumber = (value: string): boolean => /\d/.test(value);
+const containsSpecialCharacter = (value: string): boolean =>
+  /[!@#$%^&*(),.?":{}|<>]/.test(value);
+
+const calculatePasswordStrength = (value: string): number => {
+  if (value.length < 8) {
+    return 1;
+  }
+
+  let strength = 1;
+  if (containsLowerAndUpperCase(value)) {
+    strength++;
+  }
+  if (containsNumber(value)) {
+    strength++;
+  }
+  if (containsSpecialCharacter(value)) {
+    strength++;
+  }
+  if (value.length >= 12) {
+    strength++;
+  }
+  return strength;
+};
+
+const getStrengthInfo = (strength: number) => {
   switch (strength) {
-    case PasswordStrength.VeryWeak:
+    case 1:
       return { label: "Very Weak", color: "#ff4d4f" };
-    case PasswordStrength.Weak:
+    case 2:
       return { label: "Weak", color: "#ff7a45" };
-    case PasswordStrength.Medium:
+    case 3:
       return { label: "Medium", color: "#faad14" };
-    case PasswordStrength.Strong:
+    case 4:
       return { label: "Strong", color: "#73d13d" };
-    case PasswordStrength.VeryStrong:
+    case 5:
       return { label: "Very Strong", color: "#52c41a" };
     default:
       return { label: "", color: "transparent" };
@@ -20,7 +45,7 @@ const getStrengthInfo = (strength: PasswordStrength) => {
 };
 
 interface PasswordWidgetProps {
-  password: Password;
+  password: string;
   onPasswordChange: (password: string) => void;
   action: string;
 }
@@ -30,28 +55,25 @@ const PasswordWidget: React.FC<PasswordWidgetProps> = ({
   onPasswordChange,
   action,
 }) => {
-  const strength: PasswordStrength = password.getStrength();
+  const strength = calculatePasswordStrength(password);
   const { label, color } = getStrengthInfo(strength);
 
   return (
     <>
       <input
-        className={"inputBox"}
+        className="inputBox"
         type="password"
         placeholder="Please enter your password"
-        value={password.getValue()}
+        value={password}
         onChange={(e) => onPasswordChange(e.target.value)}
       />
-      {
-        // If the user is registering, show a password strength
-        action === "Registration" && password.getValue() != "" && (
-          <div style={{ whiteSpace: "nowrap" }}>
-            <span style={{ color: "black" }}>Password Strength: </span>
-            <br></br>
-            <strong style={{ color }}>{label}</strong>
-          </div>
-        )
-      }
+      {action === "Registration" && password !== "" && (
+        <div style={{ whiteSpace: "nowrap" }}>
+          <span style={{ color: "black" }}>Password Strength: </span>
+          <br />
+          <strong style={{ color }}>{label}</strong>
+        </div>
+      )}
     </>
   );
 };
