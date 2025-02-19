@@ -27,9 +27,9 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
         // Reset success message
         setSuccessMessage(null);
 
-        // Using EmailAddress value type to check the validity of the user input
-        try {
-            new Email(currentEmailValue);
+        // Check the validity of the user input
+        if (isValidEmail(currentEmailValue))
+        {
             setErrors({});
             // Give different feedback based on current action
             if (action === "Registration") {
@@ -38,13 +38,10 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
                 setSuccessMessage("E-Mail address valid for login!");
             }
         }
-        catch (exception)
+        else
         {
-            if(exception instanceof IllegalArgumentException)
-            {
-                errors.emailErrors = exception.message;
-                setErrors(errors);
-            }
+            errors.emailErrors = "invalid email address.";
+            setErrors(errors);
         }
     }
 
