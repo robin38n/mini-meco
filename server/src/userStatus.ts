@@ -11,8 +11,8 @@ export class UserStatus {
     // Define valid transitions between states
     private static validTransitions: Record<UserStatusEnum, UserStatusEnum[]> = {
         [UserStatusEnum.confirmed]: [UserStatusEnum.suspended],
-        [UserStatusEnum.unconfirmed]: [UserStatusEnum.confirmed, UserStatusEnum.suspended],
-        [UserStatusEnum.suspended]: [UserStatusEnum.confirmed],
+        [UserStatusEnum.unconfirmed]: [UserStatusEnum.confirmed, UserStatusEnum.suspended, UserStatusEnum.removed],
+        [UserStatusEnum.suspended]: [UserStatusEnum.confirmed, UserStatusEnum.removed],
         [UserStatusEnum.removed]: [],
     };
 

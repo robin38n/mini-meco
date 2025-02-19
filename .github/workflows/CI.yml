@@ -21,7 +21,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.13.1'
+          node-version: 'lts/*'
 
       - name: Install dependencies
         run: |
@@ -43,7 +43,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.13.1'
+          node-version: 'lts/*'
 
       - name: Install dependencies
         run: |
@@ -66,7 +66,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.13.1'
+          node-version: 'lts/*'
 
       - name: Install dependencies
         run: npm install
