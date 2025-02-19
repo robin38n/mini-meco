@@ -1,6 +1,4 @@
 import React, {useState} from "react";
-import { Email } from '../../../../server/src/email';
-import {IllegalArgumentException} from "../../../../server/src/Exceptions/IllegalArgumentException.ts";
 
 interface EmailWidgetProps {
     onEmailChange: (email: string) => void; // Callback-Prop
@@ -48,6 +46,14 @@ const EmailWidget: React.FC<EmailWidgetProps> = ({ onEmailChange, action }) => {
                 setErrors(errors);
             }
         }
+    }
+
+    // Copy&pasted EmailValidation from ../server/src/email
+    function isValidEmail (email: string): boolean {
+        // Valid email string format: must not contain '@', followed by '@', must include a '.',
+        // and end with a string without '@'
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
     }
 
     return (
