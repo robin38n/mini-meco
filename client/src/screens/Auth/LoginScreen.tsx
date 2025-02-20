@@ -5,6 +5,7 @@ import EmailIcon from "./../../assets/EmailIcon.png";
 import PasswordIcon from "./../../assets/PasswordIcon.png";
 import { useNavigate } from "react-router-dom";
 import EmailWidget from "@/components/Components/EmailWidget.tsx";
+import PasswordWidget from "@/components/Components/PasswordWidget";
 
 const LoginScreen = () => {
   const navigate = useNavigate();
@@ -20,6 +21,10 @@ const LoginScreen = () => {
     setEmail(newEmail);
   };
 
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+  };
+
   const handleSubmit = async () => {
     if (!validationOn) {
       setValidationOn(true);
@@ -30,7 +35,10 @@ const LoginScreen = () => {
     }
 
     const endpoint = action === "Registration" ? "/user" : "/session";
-    const body: { [key: string]: string } = { email, password };
+    const body: { [key: string]: string } = {
+      email,
+      password,
+    };
     // Add name to the body if the action is Registration (not Login)
     if (action === "Registration") {
       body.name = name;
@@ -40,9 +48,9 @@ const LoginScreen = () => {
       const response = await fetch(`http://localhost:3000${endpoint}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", 
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(body), 
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -80,10 +88,12 @@ const LoginScreen = () => {
         </div>
         <div className="inputs">
           {action === "Registration" && (
-            <div className={"input" + (validationOn && !name ? " validation" : "")}>
+            <div
+              className={"input" + (validationOn && !name ? " validation" : "")}
+            >
               <img className="username-icon" src={UserNameIcon} alt="" />
               <input
-                className={"inputBox"} 
+                className={"inputBox"}
                 type="text"
                 placeholder="Please enter your name"
                 value={name}
@@ -92,25 +102,28 @@ const LoginScreen = () => {
             </div>
           )}
 
-          <div className={"input" + (validationOn && !email ? " validation" : "")}>
+          <div
+            className={"input" + (validationOn && !email ? " validation" : "")}
+          >
             <img className="email-icon" src={EmailIcon} alt="" />
-            <EmailWidget onEmailChange={handleEmailChange}
-                         action={action}/>
+            <EmailWidget onEmailChange={handleEmailChange} action={action} />
             {validationOn && !email && (
-                <span style={{ color: "red", fontWeight: "bold" }}>
+              <span style={{ color: "red", fontWeight: "bold" }}>
                 Please enter a valid email address.
               </span>
             )}
           </div>
-          <div className={"input" + (validationOn && !password ? " validation" : "")}>
+          <div
+            className={
+              "input" + (validationOn && !password ? " validation" : "")
+            }
+          >
             <img className="password-icon" src={PasswordIcon} alt="" />
-            <input
-              className={"inputBox"} 
-              type="password"
-              placeholder="Please enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <PasswordWidget
+              password={password}
+              onPasswordChange={handlePasswordChange}
+              action={action}
+            ></PasswordWidget>
           </div>
         </div>
         {action === "Login" && (
@@ -120,7 +133,9 @@ const LoginScreen = () => {
         )}
         <div className="submit-container">
           <div
-            className={"submit " + (action === "Login" ? "primary" : "secondary")}
+            className={
+              "submit " + (action === "Login" ? "primary" : "secondary")
+            }
             onClick={() => {
               if (action === "Login") {
                 handleSubmit();
@@ -133,7 +148,9 @@ const LoginScreen = () => {
             Login
           </div>
           <div
-            className={"submit " + (action === "Registration" ? "primary" : "secondary")}
+            className={
+              "submit " + (action === "Registration" ? "primary" : "secondary")
+            }
             onClick={() => {
               if (action === "Registration") {
                 handleSubmit();
@@ -141,8 +158,8 @@ const LoginScreen = () => {
               } else {
                 setAction("Registration");
                 setValidationOn(false);
+              }
             }}
-          }
           >
             Sign Up
           </div>
