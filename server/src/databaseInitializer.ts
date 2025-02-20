@@ -118,33 +118,33 @@ export async function initializeCourseSchedule(db: Database) {
     )`);
 
   await db.exec(`
-    CREATE TABLE IF NOT EXISTS deliveries (
+    CREATE TABLE IF NOT EXISTS submissions (
       id INTEGER PRIMARY KEY,
       scheduleId INTEGER,
-      deliveryDate INTEGER,
+      submissionDate INTEGER,
       FOREIGN KEY (scheduleId) REFERENCES schedules(id) ON DELETE CASCADE,
-      UNIQUE (scheduleId, deliveryDate)
+      UNIQUE (scheduleId, submissionDate)
     )`);
 
   await db.exec(`
-    CREATE TRIGGER IF NOT EXISTS deliveries_insert_trigger
-    BEFORE INSERT ON deliveries
+    CREATE TRIGGER IF NOT EXISTS submissions_insert_trigger
+    BEFORE INSERT ON submissions
     FOR EACH ROW
     BEGIN
-      SELECT RAISE(ABORT, 'deliveryDate must be between startDate and endDate')
-      WHERE NEW.deliveryDate < (SELECT startDate FROM schedules WHERE id = NEW.scheduleId)
-        OR NEW.deliveryDate > (SELECT endDate FROM schedules WHERE id = NEW.scheduleId);
+      SELECT RAISE(ABORT, 'submissionDate must be between startDate and endDate')
+      WHERE NEW.submissionDate < (SELECT startDate FROM schedules WHERE id = NEW.scheduleId)
+        OR NEW.submissionDate > (SELECT endDate FROM schedules WHERE id = NEW.scheduleId);
     END;
     `);
 
   await db.exec(`
-    CREATE TRIGGER IF NOT EXISTS deliveries_update_trigger
-    BEFORE UPDATE ON deliveries
+    CREATE TRIGGER IF NOT EXISTS submissions_update_trigger
+    BEFORE UPDATE ON submissions
     FOR EACH ROW
     BEGIN
-      SELECT RAISE(ABORT, 'deliveryDate must be between startDate and endDate')
-      WHERE NEW.deliveryDate < (SELECT startDate FROM schedules WHERE id = NEW.scheduleId)
-        OR NEW.deliveryDate > (SELECT endDate FROM schedules WHERE id = NEW.scheduleId);
+      SELECT RAISE(ABORT, 'submissionDate must be between startDate and endDate')
+      WHERE NEW.submissionDate < (SELECT startDate FROM schedules WHERE id = NEW.scheduleId)
+        OR NEW.submissionDate > (SELECT endDate FROM schedules WHERE id = NEW.scheduleId);
     END;
     `);
 }

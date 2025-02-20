@@ -2,9 +2,9 @@ import { Reader } from "../Serializer/Reader";
 import { Serializable } from "../Serializer/Serializable";
 import { Writer } from "../Serializer/Writer";
 
-export class DeliveryDate implements Serializable {
+export class SubmissionDate implements Serializable {
   protected id: number;
-  protected deliveryDate: Date = new Date();
+  protected submissionDate: Date = new Date();
 
   constructor(id: number) {
     this.id = id;
@@ -14,25 +14,25 @@ export class DeliveryDate implements Serializable {
     return this.id;
   }
 
-  public getDeliveryDate(): Date {
-    return this.deliveryDate;
+  public getSubmissionDate(): Date {
+    return this.submissionDate;
   }
 
   public setId(id: number) {
     this.id = id;
   }
 
-  public setDeliveryDate(deliveryDate: Date) {
-    this.deliveryDate = deliveryDate;
+  public setSubmissionDate(submissionDate: Date) {
+    this.submissionDate = submissionDate;
   }
   
   readFrom(reader: Reader): void {
-    this.deliveryDate = reader.readDateTime("deliveryDate") ?? this.deliveryDate;
+    this.submissionDate = reader.readDateTime("submissionDate") ?? this.submissionDate;
   }
   
   writeTo(writer: Writer): void {
     writer.writeNumber("id", this.id);
-    writer.writeDateTime("deliveryDate", this.deliveryDate);
+    writer.writeDateTime("submissionDate", this.submissionDate);
   }
 }
 
@@ -40,7 +40,7 @@ export class CourseSchedule implements Serializable {
   protected id: number;
   protected startDate: Date = new Date();
   protected endDate: Date = new Date();
-  protected deliveryDates: DeliveryDate[] = [];
+  protected submissionDates: SubmissionDate[] = [];
   
   constructor(id: number) {
     this.id = id;
@@ -58,8 +58,8 @@ export class CourseSchedule implements Serializable {
     return this.endDate;
   }
 
-  public getDeliveryDates(): DeliveryDate[] {
-    return this.deliveryDates;
+  public getSubmissionDates(): SubmissionDate[] {
+    return this.submissionDates;
   }
 
   public setId(id: number) {
@@ -74,21 +74,21 @@ export class CourseSchedule implements Serializable {
     this.endDate = endDate;
   }
 
-  public setDeliveryDates(deliveryDates: DeliveryDate[]) {
-    this.deliveryDates = deliveryDates;
+  public setSubmissionDates(submissionDates: SubmissionDate[]) {
+    this.submissionDates = submissionDates;
   }
   
   async readFrom(reader: Reader): Promise<void> {
     this.startDate = reader.readDateTime("startDate") ?? this.startDate;
     this.endDate = reader.readDateTime("endDate") ?? this.endDate;
-    this.deliveryDates = await reader.readObjects("scheduleId", "DeliveryDate") as DeliveryDate[];
+    this.submissionDates = await reader.readObjects("scheduleId", "SubmissionDate") as SubmissionDate[];
   }
   
   writeTo(writer: Writer): void {
     writer.writeNumber("id", this.id);
     writer.writeDateTime("startDate", this.startDate);
     writer.writeDateTime("endDate", this.endDate);
-    writer.writeObjects("scheduleId", this.deliveryDates);
+    writer.writeObjects("scheduleId", this.submissionDates);
   }
 
 }
