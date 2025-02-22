@@ -31,7 +31,8 @@ export interface Reader {
 
     /**
      * 
-     * @todo Figure out, what ts type goes here!
+     * Reads a datetime from backend with @param attributeName.
+     * @param attributeName Name used to identify the attribute when reading/writing.
      */
-    // readDateTime(attributeName: String): ???; 
+    readDateTime(attributeName: string): Date | null;
 }

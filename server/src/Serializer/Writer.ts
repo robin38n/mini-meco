@@ -23,7 +23,7 @@ export interface Writer {
      * @param attributeName Name used to identify the attribute when reading/writing.
      * @param string Attribute Value.
      */
-    writeString(attributeName: string, string: String | null): void;
+    writeString(attributeName: string, string: string | null): void;
 
     /**
      * Writes @param number to backend with @param attributeName.
@@ -34,7 +34,9 @@ export interface Writer {
 
     /**
      * 
-     * @todo Figure out, what ts type goes here!
+     * Writes @param dateTime to backend with @param attributeName.
+     * @param attributeName Name used to identify the attribute when reading/writing.
+     * @param dateTime Attribute Value.
      */
-    // writeDateTime(attributeName: String, dateTime: ???): void; 
+    writeDateTime(attributeName: string, dateTime: Date): void;
 }

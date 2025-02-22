@@ -116,9 +116,14 @@ export class DatabaseResultSetReader implements Reader {
         }
         return val;
     }
+    readDateTime(attributeName: string): Date | null {
+        const val = this.readNumber(attributeName);
+        if (val) return new Date(val * 1000);
+        else return null;
+    }
     
 
-    protected isValidKey<T extends Object>(key: string | number | symbol, obj: T): key is keyof T {
+    protected isValidKey<T extends object>(key: string | number | symbol, obj: T): key is keyof T {
         return key in obj;
     }
 }

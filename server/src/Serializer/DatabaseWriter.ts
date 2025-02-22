@@ -102,4 +102,8 @@ export class DatabaseWriter implements Writer {
             throw new Error("Unknown Serializable! Probably not implemented yet!");
         }
     }
+
+    writeDateTime(attributeName: string, dateTime: Date): void {
+        this.attributes[attributeName] = dateTime.getTime() / 1000;
+    }
 }
