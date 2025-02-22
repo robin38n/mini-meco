@@ -1,20 +1,12 @@
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
 import { describe, it, expect } from "vitest";
 import { ObjectHandler } from "../ObjectHandler";
-import { initializeCourseSchedule } from "../databaseInitializer";
 import { CourseSchedule, SubmissionDate } from "../Models/CourseSchedule";
 import { DatabaseSerializableFactory } from "../Serializer/DatabaseSerializableFactory";
 import { DatabaseWriter } from "../Serializer/DatabaseWriter";
+import { initializeDB } from "../databaseInitializer";
 
 async function openInMem() {
-    const db = await open({
-        filename: ":memory:",
-        driver: sqlite3.Database,
-    });
-    await initializeCourseSchedule(db);
-    
-    return db;
+    return await initializeDB(":memory:", false);
 }
 
 describe("CourseSchedule", () => {

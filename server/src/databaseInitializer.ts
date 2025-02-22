@@ -13,9 +13,9 @@ const DEFAULT_USER = {
   password: "helloworld"
 };
 
-export async function initializeDB() {
+export async function initializeDB(filename = './myDatabase.db', createAdmin = true) {
   const db = await open({
-    filename: './myDatabase.db',
+    filename: filename,
     driver: sqlite3.Database,
   });
 
@@ -38,7 +38,7 @@ export async function initializeDB() {
   `);
 
   const userCount = await oh.getUserCount(db);
-  if (!userCount || userCount === 0) {
+  if ((!userCount || userCount === 0) && createAdmin) {
     const { name, email, password } = DEFAULT_USER;
     const dbsf = new DatabaseSerializableFactory(db);
     const writer = new DatabaseWriter(db);
@@ -103,13 +103,6 @@ export async function initializeDB() {
     )
   `);
 
-  await initializeCourseSchedule(db);
-
-  return db;
-}
-
-// exported for testing
-export async function initializeCourseSchedule(db: Database) {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS schedules (
       id INTEGER PRIMARY KEY,
@@ -147,4 +140,6 @@ export async function initializeCourseSchedule(db: Database) {
         OR NEW.submissionDate > (SELECT endDate FROM schedules WHERE id = NEW.scheduleId);
     END;
     `);
+  
+  return db;
 }
