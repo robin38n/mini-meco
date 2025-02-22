@@ -8,6 +8,7 @@ import { Course } from "../Models/Course";
 import { ProjectMember } from "../Models/ProjectMember";
 import { ProjectParticipation } from "../Models/ProjectParticipation";
 import { Reader } from "./Reader";
+import { CourseSchedule, DeliveryDate } from "../Models/CourseSchedule";
 
 /**
  * Reader Class
@@ -110,6 +111,10 @@ export class DatabaseWriter implements Writer {
             return "courses";
         } else if (s instanceof CourseProject) {
             return "projects";
+        } else if (s instanceof CourseSchedule) {
+            return "schedules";
+        } else if (s instanceof DeliveryDate) {
+            return "deliveries";
         } else if (s instanceof ForeignWrapper) {
             return this.getTableNameFromClass(s.obj);
         /** @todo Add further tables/Classes! */
