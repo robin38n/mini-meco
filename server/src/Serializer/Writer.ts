@@ -19,6 +19,13 @@ export interface Writer {
     writeObject<T extends Serializable>(attributeName: string, objRef: T | null): void;
 
     /**
+     * Writes multiple objects to backend (1 to n relation).
+     * @param referenceColumnName Name of the column in the table of @params objRefs which references this id.
+     * @param objRefs Serializables to be written.
+     */
+    writeObjects<T extends Serializable>(referenceColumnName: string, objRefs: T[]): void;
+
+    /**
      * Writes @param string to backend with @param attributeName.
      * @param attributeName Name used to identify the attribute when reading/writing.
      * @param string Attribute Value.

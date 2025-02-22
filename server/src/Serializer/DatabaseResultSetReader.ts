@@ -102,6 +102,18 @@ export class DatabaseResultSetReader implements Reader {
         return obj;
     }
 
+    readObjects(_: string, className: string): Promise<Serializable[]> {
+        const id = this.attributes['id'];
+
+        if (typeof id !== 'number') {
+            throw new Error("readObjects currently requires a numbered id!");
+        }
+
+        const oh = new ObjectHandler();
+
+        return oh.getSerializablesFromId(id, className, this.db);
+    }
+
     readString(attributeName: string): string | null{
         const val = this.attributes[attributeName];
         if (val !== null && typeof val !== 'string' ) {
