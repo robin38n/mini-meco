@@ -60,6 +60,7 @@ export class ObjectHandler {
 
         const args = req.body.args || [];
         const course = await this.getCourse(courseId, db);
+        // const couse = await this.cm.getCourse(courseId, db);
         if (!course) {
             res.status(400).json({ message: 'Course not found' });
             return;

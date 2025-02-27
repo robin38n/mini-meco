@@ -14,17 +14,14 @@ export class Semester {
     private readonly year: AcademicYear
   ) {}
 
-  // Create a Semester instance as value object
   static create(input: string): Semester {
-    let { type, year } = Semester.parseString(input);
-    if (!type || !year) throw new MethodFailedException("Semester cannot be instantiated.");
-    return new Semester(type, year);
+    const semester = this.parseString(input);
+    if (!semester) throw new MethodFailedException("Semester cannot be instantiated.");
+    return semester;
   }
 
   static read(input: string): Semester {
-    let vObj = Semester.create(input);
-    if (!vObj) throw new MethodFailedException("Semester cannot be instantiated.");
-    return vObj;
+    return this.create(input);
   }
 
   public getSemesterType(): SemesterType {
@@ -40,7 +37,7 @@ export class Semester {
   }
 
   // Parse the input string to extract the semester type and year
-  private static parseString(input: string): { type: SemesterType, year: AcademicYear } {
+  private static parseString(input: string): Semester {
     if (input === undefined) {
       throw new IllegalArgumentException("Semester value cannot be undefined");
     }
@@ -66,10 +63,7 @@ export class Semester {
 
     let validYear = this.parseAcademicYear(parseInt(year), validType);
 
-    return {
-      type: validType,
-      year: validYear
-    };
+    return new Semester(validType, validYear)
   }
 
   // Helper method to calculate the academic year based on the semester type.

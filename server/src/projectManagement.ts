@@ -6,6 +6,7 @@ import { DatabaseManager } from "./Models/DatabaseManager";
 import { Email } from './email';
 
 import { Semester } from "./Models/Semester";
+import { CourseManager } from "./CourseManager";
 
 dotenv.config();
 
@@ -15,13 +16,13 @@ export const createCourse = async (req: Request, res: Response, db: Database) =>
     return res.status(400).json({ message: "Please fill in semester and course name" });
   }
 
-  let semesterInput = semester; // Raw input from the request
   try {
-    const semester = Semester.create(semesterInput); // Uses the Semester's internal validation
-    await db.run("INSERT INTO courses (semester, courseName) VALUES (?, ?)", [semester.toString(), courseName]);
+    const cm = new CourseManager(db);
+    const result = await cm.createCourse(courseName, semester);
+    console.log("[CM.createCourse] created successfully: ID/Name", result.getId(), result.getName())
     res.status(201).json({ message: "Course created successfully" });
   } catch (error) {
-    console.error("Error during project group creation:", error);
+    console.error("Error during Course creation:", error);
     res.status(500).json({ message: "Course creation failed", error });
   }
 }
@@ -58,7 +59,7 @@ export const editCourse = async (req: Request, res: Response, db: Database) => {
   } 
 
   try {
-    const semester = Semester.create(newSemester); // @todo Shared ValueType method?
+    const semester = Semester.create(newSemester);
     const courseId = DatabaseManager.getCourseIdFromName(db, courseName);
     console.log(`Executing SQL: UPDATE courses SET semester = '${semester.toString()}', courseName = '${newCourseName}' WHERE id = '${courseId}'`);
 
@@ -108,18 +109,11 @@ export const getSemesters = async (req: Request, res: Response, db: Database) =>
 }
 
 export const getCourses = async (req: Request, res: Response, db: Database) => {
-  const { semester } = req.query;
-  let query = "SELECT * FROM courses";
-  let params = [];
-
-  if (semester) {
-    query += " WHERE semester = ?";
-    params.push(semester);
-  }
-
   try {
-    const projectGroups = await db.all(query, params);
-    res.json(projectGroups);
+    const cm = new CourseManager(db);
+    const result = await cm.getAllCourse();
+    console.log("[CM.getAllCourse] Total Courses found: ", result.length)
+    res.json(result);
   } catch (error) {
     console.error("Error during course retrieval:", error);
     res.status(500).json({ message: "Failed to retrieve courses", error });
@@ -227,9 +221,9 @@ export const getUserCourses = async (req: Request, res: Response, db: Database) 
 
   try {
     const projectId = DatabaseManager.getProjectIdFromName(db, projectName?.toString());
-    const projectGroups = await db.get('SELECT DISTINCT courseId FROM projects WHERE id = ?', [projectId]);
-    if (projectGroups) {
-      res.json(projectGroups);
+    const allCourse = await db.get('SELECT DISTINCT courseId FROM projects WHERE id = ?', [projectId]);
+    if (allCourse) {
+      res.json(allCourse);
     } else {
       res.status(404).json({ message: "Course not found" });
     }
@@ -399,6 +393,7 @@ export const getEnrolledCourses = async (req: Request, res: Response, db: Databa
   }
 };
 
+// @todo: refactor
 export const getProjectsForCourse = async (req: Request, res: Response, db: Database) => {
   const { courseName} = req.query;
 

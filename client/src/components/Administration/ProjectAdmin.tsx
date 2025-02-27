@@ -24,25 +24,26 @@ const ProjectAdmin: React.FC = () => {
   };
 
   /* Helper method for fetching all projects of a course */
-  interface Project {
+  interface CourseProject {
     id: string;
     projectName: string;
     studentsCanJoinProject: boolean;
   }
 
   interface Course {
+    id: number;
     semester: string;
-    courseName: string;
-    projects: Project[];
+    name: string;
+    projects: CourseProject[];
     studentsCanCreateProject: boolean;
   }
 
   const [message, setMessage] = useState("");
-  const [selectedCourseEdit, setSelectedCourseEdit] = useState<Course>({ semester: "", courseName: "", projects: [], studentsCanCreateProject: false });
+  const [selectedCourseEdit, setSelectedCourseEdit] = useState<Course>({ id: 0, semester: "", name: "", projects: [], studentsCanCreateProject: false });
   const [selectedCourse, setSelectedCourse] = useState<Course>();
 
-  const [selectedProjectEdit, setSelectedProjectEdit] = useState<Project>({ id: "", projectName: "", studentsCanJoinProject: false });
-  const [selectedProject, setSelectedProject] = useState<Project>();
+  const [selectedProjectEdit, setSelectedProjectEdit] = useState<CourseProject>({ id: "", projectName: "", studentsCanJoinProject: false });
+  const [selectedProject, setSelectedProject] = useState<CourseProject>();
 
   const [courses, setCourses] = useState<Course[]>([]);
 
@@ -80,39 +81,49 @@ const ProjectAdmin: React.FC = () => {
   };
 
   /* Helper method for fetching all projects of a course */
-  const getProjectsForCourse = (course: string): Promise<Project[]> => {
-    return get(`courseProject?courseName=${course}`)
-      .then(projects => projects.map((project: { id: string; projectName: string; studentsCanJoinProject: boolean; }) => ({
+  const getProjectsForCourse = async(courseName: string): Promise<CourseProject[]> => {
+    try {
+      const projects = await get("course/courseProjects");
+      return projects.map((project: CourseProject) => ({
         id: project.id,
         projectName: project.projectName,
-        studentsCanJoinProject: project?.studentsCanJoinProject || false,
-      })))
-      .catch((error) => {
-        if (error instanceof Error) {
-          console.error("Error fetching projects:", error.message);
-        }
-        return [];
-      });
+        studentsCanJoinProject: project.studentsCanJoinProject || false,
+      }));
+    } catch (error: any) {
+      console.error("Error fetching projects:", error.message);
+      return [];
+    }
   };
 
   /* Fetch courses and projects on page reload */
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const coursesData = await get("course");
+        const data = await get("course");
+        [...data].map((c) => {
+          console.log("[courses] courses:", c);
+          // console.log("[courses] courses.semester(getSemester):", c.getSemester())
+          console.log("[courses] courses.semester(Rendering):", c.semester)
+          console.log("[courses] courses.semester(Template):", `${c.semester}`)
+          console.log("[courses] courses.semester(Explicit):", c.semester.toString())
+          console.log("[courses] courses.semester(JSON):", JSON.stringify(c.semester))
+        })
+        // const [course.name] = [...data]; 
+        setCourses(data);
 
         const coursesWithProjects: Course[] = await Promise.all(
-          coursesData.map(async (course: { courseName: string; semester: string; studentsCanCreateProject: boolean; }) => {
-            const projects = await getProjectsForCourse(course.courseName);
+          data.map(async (courses: { id: number, name: string; semester: string; studentsCanCreateProject: boolean; }) => {
+            const projects = await getProjectsForCourse(courses.name); //@todo: doesnt work
             return {
-              semester: course.semester,
-              courseName: course.courseName,
+              id: courses.id,
+              semester: courses.semester.toString(), // {type,year}
+              name: courses.name,
               projects: projects,
-              studentsCanCreateProject: course?.studentsCanCreateProject || false,
+              studentsCanCreateProject: courses?.studentsCanCreateProject || false,
             };
           })
         );
-        setCourses(coursesWithProjects);
+        // setCourses(coursesWithProjects);
       } catch (error) {
         if (error instanceof Error) {
           console.error("Error fetching data:", error.message);
@@ -142,7 +153,7 @@ const ProjectAdmin: React.FC = () => {
   const handleCreateProject = async (projectName: string) => {
     if (!selectedCourse) return;
 
-    const body: { [key: string]: string } = { semester: selectedCourse.semester, courseName: selectedCourse.courseName, projectName };
+    const body: { [key: string]: string } = { semester: selectedCourse.semester, courseName: selectedCourse.name, projectName };
 
     const data = await post("courseProject", body).catch((error) => {
       console.error("Error fetching data:", error.message);
@@ -160,7 +171,7 @@ const ProjectAdmin: React.FC = () => {
     if (!selectedCourse || !selectedProject) return;
 
     const body: { [key: string]: string } = {
-      courseName: selectedCourse.courseName,
+      courseName: selectedCourse.name,
       newCourseName: courseName,
       projectName: selectedProject.projectName,
       newProjectName: projectName,
@@ -182,9 +193,9 @@ const ProjectAdmin: React.FC = () => {
     if (!selectedCourse) return;
 
     const body: { [key: string]: string | boolean } = {
-      courseName: selectedCourse.courseName,
+      courseName: selectedCourse.name,
       newSemester: editedCourse.semester,
-      newCourseName: editedCourse.courseName,
+      newCourseName: editedCourse.name,
       studentsCanCreateProject: editedCourse.studentsCanCreateProject,
     };
 
@@ -208,7 +219,7 @@ const ProjectAdmin: React.FC = () => {
   const onOpenCreateCourseDialog = () => {
     console.log("dialog open ");
     setSelectedCourse(undefined);
-    setSelectedCourseEdit({ semester: "", courseName: "", projects: [], studentsCanCreateProject: false });
+    setSelectedCourseEdit({id: 0, semester: "", name: "", projects: [], studentsCanCreateProject: false });
   };
 
   const onOpenCreateProjectDialog = (course: Course) => {
@@ -216,7 +227,7 @@ const ProjectAdmin: React.FC = () => {
     setSelectedProjectEdit({ id: "", projectName: "", studentsCanJoinProject: false });
   };
 
-  const onOpenEditProjectDialog = (course: Course, project: Project) => {
+  const onOpenEditProjectDialog = (course: Course, project: CourseProject) => {
     setSelectedCourse(course);
     setSelectedProject(project);
     setSelectedProjectEdit(structuredClone(project));
@@ -237,6 +248,7 @@ const ProjectAdmin: React.FC = () => {
           <table className="w-full text-sm">
             <thead className="bg-stone-300 text-lg text-black">
               <tr>
+              <th className="px-6 py-3">Id</th>
                 <th className="px-6 py-3">Semester</th>
                 <th className="px-6 py-3">Course</th>
                 <th className="flex items-center justify-center px-6 py-4">
@@ -268,12 +280,12 @@ const ProjectAdmin: React.FC = () => {
                         <input
                           className="ProjAdminPanel-inputBox bg-gray-50"
                           type="text"
-                          value={selectedCourseEdit?.courseName || ""}
+                          value={selectedCourseEdit?.name || ""}
                           onChange={(e) => {
                             console.log(selectedCourseEdit);
                             setSelectedCourseEdit({
                               ...selectedCourseEdit,
-                              courseName: e.target.value
+                              name: e.target.value
                             })
                           }
                           }
@@ -294,7 +306,7 @@ const ProjectAdmin: React.FC = () => {
                         <label className="text-lg font-medium">Students can create their own project</label>
                       </div>
                       <DialogFooter>
-                        <Button className="ProjAdminPanel-create" onClick={() => handleCreateCourse(selectedCourseEdit.semester, selectedCourseEdit.courseName)}>
+                        <Button className="ProjAdminPanel-create" onClick={() => handleCreateCourse(selectedCourseEdit.semester, selectedCourseEdit.name)}>
                           Create
                         </Button>
                       </DialogFooter>
@@ -306,11 +318,14 @@ const ProjectAdmin: React.FC = () => {
             </thead>
             <tbody>
               {/* Iterate over all courses and add them to the table */}
-              {courses.map((course, i) => (
-                <React.Fragment key={i}>
+              {courses.map((course) => (
+                <React.Fragment key={course.id}>
                   <tr className="bg-gray-100 text-black">
-                    <td className="px-6 py-4 text-lg">{course.semester}</td>
-                    <td className="px-6 py-4 text-lg">{course.courseName}</td>
+                    <td className="px-6 py-4 text-lg">{course.id}</td>
+                    <td className="px-6 py-4 text-lg">{course.semester.toString()}</td>
+                    {/* <td className="px-6 py-4 text-lg">{`${course.semester}`}</td> */}
+                    {/* <td className="px-6 py-4 text-lg">{JSON.stringify(course.semester)}</td> */}
+                    <td className="px-6 py-4 text-lg">{course.name}</td>
                     <td className="flex items-center justify-center px-6 py-4">
                       <div>
                         {/* Edit course dialog */}
@@ -341,12 +356,12 @@ const ProjectAdmin: React.FC = () => {
                               <input
                                 className="ProjAdminPanel-inputBox bg-gray-50"
                                 type="text"
-                                value={selectedCourseEdit?.courseName || ""}
+                                value={selectedCourseEdit?.name || ""}
                                 onChange={(e) => {
                                   console.log(selectedCourseEdit);
                                   setSelectedCourseEdit({
                                     ...selectedCourseEdit,
-                                    courseName: e.target.value
+                                    name: e.target.value
                                   })
                                 }
                                 }
@@ -476,7 +491,7 @@ const ProjectAdmin: React.FC = () => {
                                         <label className="text-lg font-medium">Students can join this project</label>
                                       </div>
                                       <DialogFooter>
-                                        <Button className="ProjAdminPanel-create" onClick={() => handleEditProject(selectedProjectEdit.projectName, course.courseName)}>
+                                        <Button className="ProjAdminPanel-create" onClick={() => handleEditProject(selectedProjectEdit.projectName, course.name)}>
                                           Save
                                         </Button>
                                       </DialogFooter>

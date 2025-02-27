@@ -13,10 +13,10 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<string[]>([]);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string>("USER");
+  const [userRole, setUserRole] = useState<string>("ADMIN");
 
   const username = localStorage.getItem("username");
-
+  console.log("[Dashboard] username: ", username)
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -46,12 +46,14 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       const userEmail = localStorage.getItem("email");
+      console.log("[Dashboard] userEmail: ", userEmail)
       if (userEmail) {
         try {
           const response = await fetch(
             `http://localhost:3000/user/role?userEmail=${userEmail}`
           );
           const data = await response.json();
+          console.log("[Dashboard] setUserRole: ", data.userRole)
           setUserRole(data.userRole);
         } catch (error) {
           console.error("Error fetching user role:", error);
