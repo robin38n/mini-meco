@@ -114,6 +114,10 @@ const Dashboard: React.FC = () => {
     navigate("/project-admin");
   }
 
+  function goCourseManager() {
+    navigate("/course-manager");
+  }
+
   return (
     <div>
       <div className="DashboardContainer">
@@ -177,7 +181,7 @@ const Dashboard: React.FC = () => {
        {userRole === "ADMIN" && (
         <>
         <div className="Title">
-          <h2>Administration</h2>
+          <h2>System Administration</h2>
         </div>
         <div className="ComponentContainer">
           <div onClick={goUserAdmin} className="components">
@@ -185,6 +189,9 @@ const Dashboard: React.FC = () => {
           </div>
           <div onClick={goProjectAdmin} className="components">
             Project Admin
+          </div>
+          <div onClick={goCourseManager} className="components">
+            Course Manager
           </div>
         </div>
        </>)}

@@ -10,6 +10,7 @@ import { CourseManager } from "./CourseManager";
 
 dotenv.config();
 
+// @todo: CourseController
 export const createCourse = async (req: Request, res: Response, db: Database) => {
   const { semester, courseName } = req.body;
   if (!semester || !courseName) {

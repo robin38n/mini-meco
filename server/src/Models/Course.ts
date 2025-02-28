@@ -13,6 +13,7 @@ export class Course implements Serializable {
   protected schedular: CourseSchedule | null = null; // 1:1
   constructor(id: number) {
     this.id = id;
+    this.projects = new Array<CourseProject>();
   }
 
   readFrom(reader: Reader): void {
@@ -44,6 +45,11 @@ export class Course implements Serializable {
     return this.semester ? this.semester.toString() : null;
   }
 
+  public getProjects(): CourseProject[] {
+    // Return a copy of the array to prevent direct modification
+    return [...this.projects];
+  }
+
   // Setters
   public setName(name: string | null) {
     this.name = name;
@@ -56,5 +62,38 @@ export class Course implements Serializable {
     } else {
       this.semester = null;
     }
+  }
+
+  // Composition methods for CourseProject (1:N)
+  public addProject(project: CourseProject): void {
+    this.projects.push(project);
+  }
+  
+  public removeProject(project: CourseProject | number): boolean {
+    if (typeof project === "number") {
+      const index = this.projects.findIndex(p => p.getId() === project);
+      if (index !== -1) {
+        this.projects.splice(index, 1);
+        return true;
+      }
+      return false;
+    } else {
+      const index = this.projects.indexOf(project);
+      if (index !== -1) {
+        this.projects.splice(index, 1);
+        return true;
+      }
+      return false;
+    }
+  }
+
+  public createProject(projectId: number): CourseProject {
+    const project = new CourseProject(projectId)
+    this.projects.push(project);
+    return project;
+  }
+
+  public findProjectById(projectId: number): CourseProject | undefined {
+    return this.projects.find(project => project.getId() === projectId);
   }
 }
