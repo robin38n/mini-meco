@@ -110,12 +110,8 @@ const Dashboard: React.FC = () => {
     navigate("/user-admin");
   }
 
-  function goProjectAdmin() {
-    navigate("/project-admin");
-  }
-
-  function goCourseManager() {
-    navigate("/course-manager");
+  function goCourseAdmin() {
+    navigate("/course-admin");
   }
 
   return (
@@ -187,11 +183,8 @@ const Dashboard: React.FC = () => {
           <div onClick={goUserAdmin} className="components">
             User Admin
           </div>
-          <div onClick={goProjectAdmin} className="components">
-            Project Admin
-          </div>
-          <div onClick={goCourseManager} className="components">
-            Course Manager
+          <div onClick={goCourseAdmin} className="components">
+            Course Admin
           </div>
         </div>
        </>)}

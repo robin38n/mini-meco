@@ -57,8 +57,8 @@ const Table = ({ headings, loading, loadData, data, rowsPerPage = 0, filterOptio
                         isFiltered &&
                         <CheckboxSelect options={filterOptions.options} active={filter} setActive={(f) => { setFilter(f); setPage(0); }}>Filter</CheckboxSelect>
                     }
+                    {children}
                 </div>
-                {children}
                 <div>
                     <ReloadButton loading={loading} onClick={loadData} />
                 </div>

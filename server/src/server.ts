@@ -8,11 +8,10 @@ import {
   register, login, forgotPassword, resetPassword, confirmEmail, sendConfirmationEmail
 } from './auth';
 import {
-  createCourse, createProject, editCourse, editProject, getCourses, getProjects,
-  getSemesters, joinProject, leaveProject, getUserProjects, getUserCourses, getUsersByStatus,
+  createProject, editProject, getProjects,
+  joinProject, leaveProject, getUserProjects, getUsersByStatus,
   updateUserStatus, updateAllConfirmedUsers,
   getEnrolledCourses,
-  getProjectsForCourse,
   getRoleForProject,
   getUsers
 } from './projectManagement';
@@ -25,6 +24,7 @@ import {
   getUserProjectURL, getUserRole, updateUserRole
 } from './userConfig';
 import { checkOwnership } from './auth';
+import { CourseController } from './CourseController';
 
 dotenv.config();
 
@@ -36,6 +36,7 @@ app.use(cors({ origin: 'http://localhost:5173' }));
 
 initializeDB().then((db) => {
   const oh = new ObjectHandler();
+  const course = new CourseController(db);
   console.log("Database initialized, starting server...");
 
   app.get('/', (req, res) => {
@@ -43,16 +44,12 @@ initializeDB().then((db) => {
   });
 
   // course endpoints
-  app.get('/course', (req, res) => { getCourses(req, res, db) });
-  app.post('/course', (req, res) => { createCourse(req, res, db); });
-  app.put('/course', (req, res) => { editCourse(req, res, db); });
-  app.get('/course/courseProjects', (req, res) => getProjectsForCourse(req, res, db));
-  app.get('/course/user', (req, res) => { getUserCourses(req, res, db) });
+  course.init(app);
 
   // courseProject endpoints
   app.get('/courseProject', (req, res) => { getProjects(req, res, db) });
   app.get('/courseProject/user/role', (req, res) => getRoleForProject(req, res, db));
-  app.post('/courseProject', (req, res) => { createProject(req, res, db); });
+  // app.post('/courseProject', (req, res) => { createProject(req, res, db); });
   app.put('/courseProject', (req, res) => { editProject(req, res, db); });
   app.get('/courseProject/happiness', (req, res) => { getProjectHappinessMetrics(req, res, db) });
   app.post('/courseProject/happiness', (req, res) => saveHappinessMetric(req, res, db));
@@ -86,7 +83,6 @@ initializeDB().then((db) => {
   app.post('/user/role', (req, res) => { updateUserRole(req, res, db) });
 
   app.post('/projConfig/changeURL', (req, res) => setUserProjectURL(req, res, db));
-  app.get('/semesters', (req, res) => { getSemesters(req, res, db) });
   app.post('/projConfig/leaveProject', (req, res) => leaveProject(req, res, db));
   app.post('/session', (req, res) => login(req, res, db));
 

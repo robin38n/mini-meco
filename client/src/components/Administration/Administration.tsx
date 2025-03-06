@@ -1,7 +1,6 @@
 import UserAdmin from "./UserAdmin";
-import CourseManager from "@/components/Administration/CourseManager";
+import CourseAdmin from "@/components/Administration/CourseAdmin";
 import "./Administration.css";
-import ProjectAdmin from "./ProjectAdmin";
 
 const Administration = () => {
   return (
@@ -11,8 +10,7 @@ const Administration = () => {
           <UserAdmin />
         </div>
         <div className="AdminComponents">
-          <CourseManager />
-          <ProjectAdmin />
+          <CourseAdmin />
         </div>
       </div>
     </div>

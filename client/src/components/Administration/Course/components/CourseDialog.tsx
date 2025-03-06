@@ -7,7 +7,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import Button from "react-bootstrap/esm/Button";
+import CourseMessage, { Message } from "./CourseMessage";
 
 interface CourseDialogProps {
   title: string;
@@ -15,50 +15,38 @@ interface CourseDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onClick?: () => void;
-  onSubmit: () => Promise<void>;
-  submitText?: string;
-  isValid?: boolean;
-  message?: string;
+  message?: Message | undefined;
   children: React.ReactNode;
 }
 
+/**
+ * Presentational Component that wraps form content, displays messages, and provides a trigger button.
+ * Uses radix/ui's Dialog for accessibility.
+ */
 export const CourseDialog: React.FC<CourseDialogProps> = ({
   title,
   trigger,
   isOpen,
   onClose,
-  onClick,
-  onSubmit,
-  submitText = "submit",
-  isValid,
   message,
   children,
 }) => {
+  const handleOpenChange = (open: boolean) => {
+    if (open) return;
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogTrigger className="bg-blue-600 mx-2" onClick={onClick}>
-        {trigger}
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="bg-blue-600 mx-2">{trigger}</DialogTrigger>
       <DialogContent className="bg-white text-black">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {children}
         <DialogFooter>
-          <Button
-            className="bg-blue-600 border border-black  hover:border-black hover:bg-transparent focus:ring focus:ring-gray-600"
-            onClick={onSubmit}
-          >
-            {submitText.toUpperCase()}
-          </Button>
+          {message && <CourseMessage message={message} />}
         </DialogFooter>
-        {message && (
-          <div
-            className={`${isValid ? "text-green-600" : "text-red-600"} text-sm`}
-          >
-            {message}
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );

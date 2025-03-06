@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Course, Project } from "@/components/Administration/Course/types";
 import courseApi from "@/components/Administration/Course/api";
+import { Message } from "@/components/Administration/Course/components/CourseMessage";
 
-const defaultCourse: Course = {
+const DEFAULT: Course = {
   id: 0,
   semester: "",
   courseName: "",
@@ -10,22 +11,44 @@ const defaultCourse: Course = {
   studentsCanCreateProject: false,
 };
 
-const defaultProject: Project = {
-  id: 0,
-  projectName: "",
-  courseId: 0,
-  studentsCanJoinProject: false,
-};
-
+/**
+ * Course hook `useCourse` manages related operations in a Course components.
+ * It provides functionality to get, create, update, and delete courses, as well as
+ * manage course projects. It also handles user feedback messages.
+ */
 export const useCourse = () => {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [message, setMessage] = useState<string | null>();
+  const [message, setMessage] = useState<Message | null>(null);
+
+  const showMessage = (
+    text: string,
+    type: "success" | "error" | "info",
+    hide = true
+  ) => {
+    setMessage({ text, type });
+    if (hide) {
+      setTimeout(() => {
+        setMessage(null);
+      }, 3000); // delay
+    }
+    7;
+  };
 
   const getCourses = async (): Promise<Course[]> => {
     try {
-      const data: Course[] = await courseApi.getCourses();
-      setCourses(data);
-      return data;
+      const response = await courseApi.getCourses();
+      if (!response) return [];
+
+      const validCourses = response.map((course) => ({
+        id: course.id ?? 0,
+        semester: course.semester ?? "",
+        courseName: course.courseName ?? "",
+        projects: course.projects ?? [],
+        studentsCanCreateProject: course.studentsCanCreateProject ?? false,
+      }));
+
+      setCourses(validCourses);
+      return validCourses;
     } catch (error) {
       console.error("Error fetching courses:", error);
       return [];
@@ -43,74 +66,116 @@ export const useCourse = () => {
 
     try {
       await courseApi.createCourse(body);
-      setMessage(`Course: "${course.courseName}" created successfully`);
-      await getCourses(); // Refresh the course list
+      showMessage(
+        `Course: "${course.courseName}" created successfully`,
+        "success"
+      );
     } catch (error) {
-      setMessage(
-        `Fail to create Course: "${course.courseName}" for Semester: "${course.semester}"`
+      showMessage(
+        `Fail to create Course: "${course.courseName}" for Semester: "${course.semester}"`,
+        "error"
       );
     }
   };
 
-  const editCourse = async (course: Course) => {
+  // This method is not implemented yet
+  const updateCourse = async (course: Course) => {
     if (!course) return;
     setMessage(null);
 
     const body = {
+      id: course.id,
       semester: course.semester,
       courseName: course.courseName,
       studentsCanCreateProject: course.studentsCanCreateProject,
     };
 
     try {
-      await courseApi.editCourse(body);
-      setMessage(`Course: ${course.courseName} editing successfully`);
-      await getCourses(); // Refresh the course list
+      await courseApi.updateCourse(body);
+      showMessage(
+        `Course: ${course.courseName} editing successfully`,
+        "success"
+      );
     } catch (error) {
-      setMessage(`Course: ${course.courseName} Error: ${error}`);
+      showMessage(`Course: ${course.courseName} Error: ${error}`, "error");
     }
   };
 
-  const deleteCourse = (course: Course) => {};
+  // This method is not implemented yet
+  const deleteCourse = async (course: Course) => {
+    if (!course) return;
+    setMessage(null);
 
-  // @todo: 
-  const getCourseProjects = async (name: string) => {
     try {
-      await courseApi.getCourseProjects(name);
+      await courseApi.deleteCourse(course.id);
+      showMessage(
+        `Course: ${course.courseName} delete successfully`,
+        "success"
+      );
+    } catch (error) {
+      showMessage(`Course: ${course.courseName} Error: ${error}`, "error");
+    }
+  };
+
+  const getCourseProjects = async (course: Course): Promise<Project[]> => {
+    try {
+      const response = await courseApi.getCourseProjects(course.id);
+      if (!response) return [];
+
+      const projects: Project[] = response.map((proj) => ({
+        id: proj.id,
+        projectName: proj.projectName,
+        courseId: proj.courseId,
+        studentsCanJoinProject: proj.studentsCanJoinProject ?? false,
+      }));
+
+      // Correctly update state without mutating existing state directly using spread operator to expand iterable elements
+      setCourses((prevCourses) =>
+        prevCourses.map((c) =>
+          c.id === course.id
+            ? { ...c, projects: [...c.projects, ...projects] }
+            : c
+        )
+      );
+
+      return projects;
     } catch (error) {
       throw error;
     }
   };
 
-  const createProject = async (project: Project) => {
+  const addProject = async (project: Project) => {
     setMessage(null);
 
     const body = {
-      projectName: project.projectName,
       courseId: project.courseId,
-      studentsCanJoinProject: project.studentsCanJoinProject
+      projectName: project.projectName,
+      studentsCanJoinProject: project.studentsCanJoinProject,
     };
 
     try {
-      await courseApi.createProject(body);
-      setMessage(`Course: "${project.projectName}" created successfully`);
+      await courseApi.addProject(body);
+      showMessage(
+        `Course: "${project.projectName}" created successfully`,
+        "success"
+      );
     } catch (error) {
-      setMessage(
-        `Fail to create Project: "${project.projectName}" for courseId: "${project.courseId}"`
+      showMessage(
+        `Fail to create Project: "${project.projectName}" for courseId: "${project.courseId}"`,
+        "error"
       );
     }
-  }
+  };
 
   return {
     message,
-    defaultCourse,
-    defaultProject,
+    DEFAULT,
     courses,
     setCourses,
     getCourses,
     createCourse,
-    editCourse,
+    updateCourse,
     getCourseProjects,
-    createProject
+    addProject,
   };
 };

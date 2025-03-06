@@ -5,6 +5,8 @@ import {
   createCourseValidation,
   createProjectValidation,
 } from "@/hooks/useForm";
+import Button from "react-bootstrap/esm/Button";
+import { Message } from "./CourseMessage";
 
 interface FormFieldProps {
   label: string;
@@ -84,23 +86,33 @@ export const DateInput: React.FC<DateInputProps> = ({
 };
 
 interface CourseFormProps {
-  type: "course" | "project";
+  type: "course" | "project" | "schedule";
   label: string[];
-  data: Course | Project;
+  data: Course | Project | undefined;
+  message: Message | undefined;
+  submitText?: string;
   onChange: (data: Course | Project) => void;
-  onValidate: (isValid: boolean) => void;
+  onSubmit: () => Promise<void>;
   children?: React.ReactNode;
 }
 
+/**
+ * CourseForm is a presentational component used for rendering and handling course or project forms.
+ * It displays form fields and validates the data based on type.
+ * It receives props from a parent component and sends the updated data back to the parent on change.
+ */
 export const CourseForm: React.FC<CourseFormProps> = ({
   type,
   label,
   data,
+  message,
   onChange,
-  onValidate,
+  onSubmit,
+  submitText = "submit",
   children,
 }) => {
   const isCourse = type === "course";
+  let success = false;
 
   // Use the correct type & validation schema based on form type<T>
   const {
@@ -112,11 +124,10 @@ export const CourseForm: React.FC<CourseFormProps> = ({
     ? useForm<Course>(data as Course, createCourseValidation())
     : useForm<Project>(data as Project, createProjectValidation());
 
-  // Notify parent component of changes
+  // Notify parent of changes
   useEffect(() => {
     onChange(formData);
-    onValidate(isValid);
-  }, [formData, isValid]);
+  }, [formData]);
 
   // Narrow the handleChanges using type assertions
   const courseHandleChanges = handleChanges as (
@@ -128,19 +139,33 @@ export const CourseForm: React.FC<CourseFormProps> = ({
     value: string
   ) => void;
 
+  const handleSubmit = async () => {
+    await onSubmit();
+    success = true;
+    setTimeout(() => (success = false), 2000);
+  };
+
+  const getButtonStyles = (isValid: boolean, message?: Message) => {
+    if (!isValid) return "bg-gray-400 text-gray-200 cursor-not-allowed";
+    if (message?.type === "success") return "bg-green-500 text-white";
+    if (message?.type === "error")
+      return "bg-red-500 text-white hover:bg-red-600";
+    return "bg-blue-500 text-white hover:bg-blue-600";
+  };
+
   return (
     <div className="space-y-4">
       {isCourse ? (
         <>
           <FormField
             label={label[0]}
-            value={(formData as Course).semester}
+            value={(formData as Course).semester || ""}
             error={(errors as Record<keyof Course, string>).semester}
             onChange={(value) => courseHandleChanges("semester", value)}
           />
           <FormField
             label={label[1]}
-            value={(formData as Course).courseName}
+            value={(formData as Course).courseName || ""}
             error={(errors as Record<keyof Course, string>).courseName}
             onChange={(value) => courseHandleChanges("courseName", value)}
           />
@@ -161,6 +186,18 @@ export const CourseForm: React.FC<CourseFormProps> = ({
         />
       )}
       {children}
+      <div className="mt-2 flex flex-col items-end">
+        <Button
+          disabled={!isValid}
+          className={`px-4 py-2 w-fit rounded transition-all duration-300 ${getButtonStyles(
+            isValid,
+            message
+          )}`}
+          onClick={handleSubmit}
+        >
+          {submitText.toUpperCase()}
+        </Button>
+      </div>
     </div>
   );
 };

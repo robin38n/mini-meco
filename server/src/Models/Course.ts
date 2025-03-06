@@ -7,24 +7,24 @@ import { Semester } from "./Semester";
 
 export class Course implements Serializable {
   protected id: number;
-  protected name: string | null = null;
+  protected courseName: string | null = null;
   protected semester: string | null = null;
   protected projects: CourseProject[] = []; // 1:N
   protected schedular: CourseSchedule | null = null; // 1:1
   constructor(id: number) {
     this.id = id;
-    this.projects = new Array<CourseProject>();
   }
 
-  readFrom(reader: Reader): void {
+  async readFrom(reader: Reader): Promise<void> {
     this.id = reader.readNumber("id") as number;
-    this.name = reader.readString("courseName");
+    this.courseName = reader.readString("courseName");
     this.semester = reader.readString("semester");
+    this.projects = (await reader.readObjects("courseId", "projects")) as CourseProject[];
   }
 
   writeTo(writer: Writer): void {
     writer.writeNumber("id", this.id);
-    writer.writeString("courseName", this.name);
+    writer.writeString("courseName", this.courseName);
     if (this.semester) {
       writer.writeString("semester", this.semester.toString());
     } else {
@@ -38,7 +38,7 @@ export class Course implements Serializable {
   }
 
   public getName(): string | null {
-    return this.name;
+    return this.courseName;
   }
 
   public getSemester(): string | null {
@@ -52,7 +52,7 @@ export class Course implements Serializable {
 
   // Setters
   public setName(name: string | null) {
-    this.name = name;
+    this.courseName = name;
   }
 
   public setSemester(semester: string | null) {
@@ -85,12 +85,6 @@ export class Course implements Serializable {
       }
       return false;
     }
-  }
-
-  public createProject(projectId: number): CourseProject {
-    const project = new CourseProject(projectId)
-    this.projects.push(project);
-    return project;
   }
 
   public findProjectById(projectId: number): CourseProject | undefined {

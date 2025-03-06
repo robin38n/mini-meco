@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 type ValidationResult = string | boolean;
 
@@ -43,13 +43,13 @@ export const createCourseValidation = () => ({
     ),
   ],
   courseName: [
-    rules.required("Course name"),
+    rules.required("Course Name"),
     rules.pattern(
       /^[a-zA-Z0-9\s-]+$/,
       "Course name can only contain letters, numbers, spaces, and hyphens"
     ),
   ],
-  studentsCanCreateProject: [rules.boolean("Students can create projects")],
+  studentsCanCreateProject: [rules.boolean("studentsCanCreateProject")],
 });
 
 export const createProjectValidation = () => ({
@@ -62,13 +62,15 @@ export const createProjectValidation = () => ({
   ],
 });
 
-export const useForm = <T>(
+export const useForm = <T extends Object>(
   initialValues: T,
   validationSchema: ValidationSchema<T>
 ) => {
   const [data, setData] = useState<T>(initialValues);
   const [errors, setErrors] = useState<FormErrors<T>>({} as FormErrors<T>);
+  const [init, setInit] = useState(false);
 
+  // Validate a single field
   const validateField = useCallback(
     (field: keyof T, value: string | boolean): string => {
       const fieldRules = validationSchema[field];
@@ -95,6 +97,21 @@ export const useForm = <T>(
     [validateField]
   );
 
+  // Run initial validation on mount
+  useEffect(() => {
+    if (init) return;
+    setErrors(
+      Object.fromEntries(
+        Object.entries(initialValues).map(([field, value]) => [
+          field,
+          validateField(field as keyof T, value),
+        ])
+      ) as FormErrors<T>
+    );
+    setInit(true)
+  }, [init, initialValues, validateField]);
+
+  // Check if Object-form is validity
   const isValid = Object.values(errors).every((error) => !error);
 
   return {

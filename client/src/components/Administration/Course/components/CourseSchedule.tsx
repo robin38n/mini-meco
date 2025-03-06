@@ -23,59 +23,58 @@ const CourseSchedule: React.FC<CourseScheduleProps> = ({ course, onClose }) => {
   });
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [timeboxes, setTimeboxes] = useState<Date[]>([]);
+  const [submission, setSubmission] = useState<Date[]>([]);
 
-  const generateWeeklyTimeboxes = () => {
+  const generateWeeklySubmission = () => {
     const boxes: Date[] = [];
     let current = new Date(startDate);
     while (current <= endDate) {
       boxes.push(new Date(current));
       current.setDate(current.getDate() + 7);
     }
-    setTimeboxes(boxes);
+    setSubmission(boxes);
   };
 
   useEffect(() => {
-    generateWeeklyTimeboxes();
+    generateWeeklySubmission();
   }, [startDate, endDate]);
 
-  const addTimebox = (date: Date) => {
-    const exists = timeboxes.some(
-      (tb) =>
-        tb.toISOString().substring(0, 10) ===
+  const addSubmission = (date: Date) => {
+    const exists = submission.some(
+      (slot) =>
+        slot.toISOString().substring(0, 10) ===
         date.toISOString().substring(0, 10)
     );
     if (!exists) {
-      const newTimeboxes = [...timeboxes, date];
-      newTimeboxes.sort((a, b) => a.getTime() - b.getTime());
-      setTimeboxes(newTimeboxes);
+      const newSubmission = [...submission, date];
+      newSubmission.sort((a, b) => a.getTime() - b.getTime());
+      setSubmission(newSubmission);
     }
   };
 
-  const removeTimebox = (date: Date) => {
-    setTimeboxes(
-      timeboxes.filter(
-        (tb) =>
-          tb.toISOString().substring(0, 10) !==
+  const removeSubmission = (date: Date) => {
+    setSubmission(
+      submission.filter(
+        (slot) =>
+          slot.toISOString().substring(0, 10) !==
           date.toISOString().substring(0, 10)
       )
     );
   };
 
-  // Split Timeboxes in two columns
   const splitTimeboxesIntoColumns = () => {
     const leftColumn: Date[] = [];
     const rightColumn: Date[] = [];
 
-    timeboxes.forEach((tb) => {
+    submission.forEach((slot) => {
       // Insert where fewer elements
       if (
         leftColumn.length < rightColumn.length ||
         (leftColumn.length === rightColumn.length && leftColumn.length < 4)
       ) {
-        leftColumn.push(tb);
+        leftColumn.push(slot);
       } else {
-        rightColumn.push(tb);
+        rightColumn.push(slot);
       }
     });
 
@@ -91,94 +90,95 @@ const CourseSchedule: React.FC<CourseScheduleProps> = ({ course, onClose }) => {
     });
   };
 
-  console.log("course", course);
-
   return (
-    <div className="course-schedule-panel p-4 w-1/4 rounded mt-4 text-gray-500 bg-white shadow">
-      <h2 className="font-bold text-2xl text-black">
-        Scheduler for {course.name}
-      </h2>
+    <div className="fixed inset-0 z-50 flex size-full items-center justify-center bg-gray-900/50">
+      <div className="p-4 w-1/3 flex flex-col items-center justify-center rounded mt-4 text-gray-500 bg-white shadow">
+        <h2 className="font-bold text-2xl text-black">Course Scheduler</h2>
+        <h3>
+          ID: {course.id}, Name: {course.courseName} and Semester:{" "}
+          {course.semester}
+        </h3>
 
-      <div className="flex flex-col items-center">
-        <DateInput
-          label="Course start:"
-          value={startDate.toISOString().substring(0, 10)}
-          onChange={setStartDate}
-          className="my-2"
-        />
+        <div className="w-fit flex flex-col items-center">
+          <DateInput
+            label="Course start:"
+            value={startDate.toISOString().substring(0, 10)}
+            onChange={setStartDate}
+            className="my-2"
+          />
 
-        <DateInput
-          label="Course end:"
-          value={endDate.toISOString().substring(0, 10)}
-          onChange={setEndDate}
-          className="my-2"
-        />
-      </div>
+          <DateInput
+            label="Course end:"
+            value={endDate.toISOString().substring(0, 10)}
+            onChange={setEndDate}
+            className="my-2"
+          />
+        </div>
 
-      <div className="my-4">
-        <h3 className="font-bold text-black">Add Timebox:</h3>
-        <DateInput
-          className="my-2 flex justify-center"
-          value={selectedDate.toISOString().substring(0, 10)}
-          onChange={(date) => {
-            setSelectedDate(date);
-            addTimebox(date);
-          }}
-        />
-      </div>
+        <div className="mb-4 w-fit items-center">
+          <h3 className="font-bold text-black px-2">Submission:</h3>
+          <DateInput
+            label="Add Date:"
+            className="my-2 justify-center"
+            value={selectedDate.toISOString().substring(0, 10)}
+            onChange={(date) => {
+              setSelectedDate(date);
+              addSubmission(date);
+            }}
+          />
+          <div className="flex flex-row">
+            {/* Left Col */}
+            <div className="px-2">
+              <ul>
+                {leftColumn.map((slot, index) => (
+                  <li key={`left-${index}`} className="flex items-center p-2">
+                    <span>{formatDateWithLeadingZeros(slot)}</span>
+                    <Button
+                      className="ml-2 bg-blue-500 text-white rounded"
+                      onClick={() => removeSubmission(slot)}
+                    >
+                      Remove
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-      <div className="mb-4">
-        <h3 className="font-bold text-black">Weekly Timeboxes:</h3>
-        <div className="flex flex-row">
-          {/* Left Col */}
-          <div className="w-1/2 px-2">
-            <ul>
-              {leftColumn.map((tb, index) => (
-                <li key={`left-${index}`} className="flex items-center p-2">
-                  <span>{formatDateWithLeadingZeros(tb)}</span>
-                  <Button
-                    className="ml-2 bg-blue-500 text-white rounded"
-                    onClick={() => removeTimebox(tb)}
-                  >
-                    Remove
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Right Col */}
-          <div className="w-1/2 px-2">
-            <ul>
-              {rightColumn.map((tb, index) => (
-                <li key={`right-${index}`} className="flex items-center p-2">
-                  <span>{formatDateWithLeadingZeros(tb)}</span>
-                  <Button
-                    className="ml-2 bg-blue-500 text-white rounded"
-                    onClick={() => removeTimebox(tb)}
-                  >
-                    Remove
-                  </Button>
-                </li>
-              ))}
-            </ul>
+            {/* Right Col */}
+            <div className="w-1/2 px-2">
+              <ul>
+                {rightColumn.map((slot, index) => (
+                  <li key={`right-${index}`} className="flex items-center p-2">
+                    <span>{formatDateWithLeadingZeros(slot)}</span>
+                    <Button
+                      className="ml-2 bg-blue-500 text-white rounded"
+                      onClick={() => removeSubmission(slot)}
+                    >
+                      Remove
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex justify-center gap-2">
-        <Button
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={() => console.log({ startDate, endDate, timeboxes, course })}
-        >
-          Save
-        </Button>
-        <Button
-          className="px-4 py-2 bg-gray-300 text-black rounded"
-          onClick={onClose}
-        >
-          Close
-        </Button>
+        <div className="flex justify-center gap-2">
+          <Button
+            className="px-4 py-2 bg-gray-300 text-black rounded"
+            onClick={onClose}
+          >
+            Close
+          </Button>
+          <Button
+            className="px-4 py-2 bg-blue-500 text-white rounded"
+            onClick={() =>
+              console.log({ startDate, endDate, submission, course })
+            }
+          >
+            Save
+          </Button>
+        </div>
       </div>
     </div>
   );

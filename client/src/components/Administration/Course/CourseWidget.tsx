@@ -9,61 +9,59 @@ import CourseSchedule from "./components/CourseSchedule";
 
 interface CourseProps {
   label?: string;
-  isEdit?: boolean;
-  isProject?: Project | boolean | null;
-  isSchedular?: boolean;
+  action: "add" | "edit" | "delete" | "schedule";
+  type?: "course" | "project" | "schedule";
   course?: Course | null;
+  onFetch?: () => void;
 }
 
+/**
+ * Container Component - A flexible UI widget for course management operations.
+ *
+ * Act as a container while delegating rendering to presentational components (CourseDialog, CourseAction) and
+ * leverages custom hooks (useCourse, useDialog) for state and business logic dafür sind the handler.
+ */
 const CourseWidget: React.FC<CourseProps> = ({
   label = undefined,
-  isEdit = false,
-  isProject = null,
-  isSchedular = false,
+  action,
+  type = "course",
   course = null,
+  onFetch,
 }) => {
-  const {
-    message,
-    defaultCourse,
-    defaultProject,
-    createCourse,
-    editCourse,
-    createProject,
-  } = useCourse();
-  const initialData = isProject ? defaultProject : defaultCourse;
+  const { message, DEFAULT, createCourse, addProject } = useCourse();
+  const [showSchedule, setShowSchedule] = useState(false);
   const {
     dialogState,
     openCreateDialog,
     openEditDialog,
     closeDialog,
     updateDialogData,
-  } = useDialog<Course | Project>(initialData);
+  } = useDialog<Course | Project>(DEFAULT);
 
-  const [isValid, setIsValid] = useState(false);
-
+  // Handles dialog state changes based on the action type
   const handleStateDialog = () => {
-    if (isProject) {
-      if (isEdit) {
-        if (!isProject) {
-          console.error("Edit mode requires a project");
-          return;
-        }
-        if (dialogState.data) {
-          openEditDialog(dialogState.data);
-        }
-      } else {
-        openCreateDialog();
-      }
-    } else {
-      if (isEdit) {
+    switch (action) {
+      case "schedule":
+        setShowSchedule((prev) => !prev);
+        break;
+      case "edit":
         if (!course) {
-          console.error("Edit mode requires a course");
+          console.error("Edit action requires a course!");
           return;
         }
         openEditDialog(course);
-      } else {
+        break;
+      case "add":
         openCreateDialog();
-      }
+        break;
+      case "delete":
+        if (!course) {
+          console.error("Delete action requires a course!");
+          return;
+        }
+        break;
+      default:
+        console.warn(`Unhandled action type: ${action}`);
     }
   };
 
@@ -71,43 +69,43 @@ const CourseWidget: React.FC<CourseProps> = ({
     if (!dialogState.data) return;
 
     try {
-      if (isProject) {
-        if (!course) {
-          console.error("Parent course is required for projects");
-          return;
-        }
-
+      if (type === "project") {
+        if (!course) return;
         const projectData = dialogState.data as Project;
+
         if (dialogState.mode === "create") {
-          await createProject(projectData);
+          await addProject({
+            ...projectData,
+            courseId: course.id, // Ensure courseId is set
+          });
+          onFetch?.(); // Callback for updating table
         } else if (dialogState.mode === "edit") {
-          // await editProject(course.id, projectData.id, projectData);
+          // await editProject({...projectData, courseId: course.id});
         }
       } else {
         const courseData = dialogState.data as Course;
         if (dialogState.mode === "create") {
           await createCourse(courseData);
+          onFetch?.();
         } else if (dialogState.mode === "edit") {
-          await editCourse(courseData);
+          // await updateCourse({...courseData, courseId: course.id});
         }
       }
-      closeDialog();
+      // closeDialog(); // Close dialog after successful submission
     } catch (error) {
       console.error("Submission error:", error);
     }
   };
 
-  // @todo
-  const [showSchedule, setShowSchedule] = useState(false);
-
-  // @todo
-  if (isSchedular && course) {
+  // Early condidtional rendering
+  if (action === "schedule" && course) {
     return (
       <div>
         <CourseAction
-          label="Schedule"
-          isSchedular={true}
-          onClick={() => setShowSchedule((prev) => !prev)}
+          label={label}
+          type="schedule"
+          action="schedule"
+          onClick={handleStateDialog}
           dataCy="schedule-course-trigger"
         />
         {showSchedule && (
@@ -120,39 +118,37 @@ const CourseWidget: React.FC<CourseProps> = ({
     );
   }
 
+  /**
+   * Main Dialog-based UI for course/project operations
+   * Compound Component with CourseDialog, CourseAction and CourseForm
+   */
   return (
     <div>
       <CourseDialog
         isOpen={dialogState.isOpen}
-        title={
-          isProject
-            ? isEdit
-              ? "Edit Project"
-              : "Create Project"
-            : isEdit
-            ? "Edit Course"
-            : "Create Course"
-        }
+        title={`${action === "edit" ? "Edit" : "Create"} ${
+          type === "project" ? "Project" : "Course"
+        }`}
         trigger={
           <CourseAction
             label={label}
-            isEdit={isEdit}
+            type={type}
+            action={action}
             onClick={handleStateDialog}
-            dataCy={`${isEdit ? "edit" : "add"}-course-trigger`}
+            dataCy={`${action ? "edit" : "add"}-course-trigger`}
           />
         }
         onClick={handleStateDialog}
         onClose={closeDialog}
-        isValid={isValid}
-        onSubmit={handleSubmit}
-        message={message || ""}
+        message={message || undefined}
       >
         <CourseForm
-          type={isProject ? "project" : "course"}
-          label={["Semester", "Name", "Students Can Create Project"]}
-          data={dialogState.data || defaultCourse}
+          type={type}
+          label={["Semester", "Course Name", "Students Can Create Project"]}
+          data={dialogState.data || undefined}
+          message={message || undefined}
           onChange={updateDialogData}
-          onValidate={setIsValid}
+          onSubmit={handleSubmit}
         />
       </CourseDialog>
     </div>

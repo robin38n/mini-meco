@@ -7,7 +7,7 @@ class ApiClient {
 
   private constructor() {}
 
-  public static getInstance(): ApiClient {
+  static getInstance(): ApiClient {
     if (!ApiClient.instnace) {
       ApiClient.instnace = new ApiClient();
     }
@@ -17,61 +17,104 @@ class ApiClient {
   private async request<T>(
     method: string,
     endpoint: string,
-    body?: Record<string, number | string | boolean>
+    params?: Record<string, string | number> | undefined,
+    body?: Record<string, unknown | undefined>
   ): Promise<T> {
     try {
-      const reponse = await fetch(this.BASE_API_URL + endpoint, {
+      const url = new URL(this.BASE_API_URL + endpoint);
+
+      // Ensure params are converted to strings and appended correctly
+      if (params) {
+        Object.entries(params).forEach(([key, value]) =>
+          url.searchParams.append(key, String(value))
+        );
+      }
+
+      const response = await fetch(url.toString(), {
         method,
         headers: { "Content-Type": "application/json" },
         body: body ? JSON.stringify(body) : undefined,
       });
 
-      if (!reponse.ok) {
-        const errorData = await reponse.json().catch(() => ({}));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          `HTTP Error: ${reponse.status} ${JSON.stringify(errorData)}`
+          `HTTP Error: ${response.status} ${JSON.stringify(errorData)}`
         );
       }
 
-      return (await reponse.json()) as Promise<T>;
+      return (await response.json()) as Promise<T>;
     } catch (error) {
       console.error(`API request failed: ${method} ${endpoint}`, error);
-      // @todo: ServiceFailuarException?
-      // Application error: a server-side exception has occurred (see the server logs for more information).
       throw error; // Re-throw to allow caller to handle
     }
   }
 
-  public async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>("GET", endpoint);
-  }
-
-  public async post<T>(
+  async get<T>(
     endpoint: string,
-    body: Record<string, number | string | boolean>
+    params?: Record<string, string | number>
   ): Promise<T> {
-    return this.request<T>("POST", endpoint, body);
+    return this.request<T>("GET", endpoint, params);
   }
 
-  public async put<T>(
+  async post<T>(
     endpoint: string,
-    body: Record<string, string | boolean>
+    body: Record<string, string | number | boolean>
   ): Promise<T> {
-    return this.request<T>("PUT", endpoint, body);
+    return this.request<T>("POST", endpoint, undefined, body);
   }
 
-  public async delete<T>(endpoint: string): Promise<T> {
+  async put<T>(
+    endpoint: string,
+    body: Record<string, string | number | boolean>
+  ): Promise<T> {
+    return this.request<T>("PUT", endpoint, undefined, body);
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>("DELETE", endpoint);
   }
 }
 
 const courseApi = {
-  getCourses: (): Promise<Course[]> => {
-    return ApiClient.getInstance().get<Course[]>("course");
+  getCourses: async (): Promise<Course[]> => {
+    try {
+      const response = await ApiClient.getInstance().get<{
+        success: boolean;
+        data: Course[];
+      }>("course");
+
+      if (!response || !response.success || !Array.isArray(response.data)) {
+        console.error("Unexpected response format: ", response);
+        return [];
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching course projects: ", error);
+      return [];
+    }
   },
 
-  getCourseProjects: (courseName: string): Promise<Response> => {
-    return ApiClient.getInstance().get(`course/courseProjects=${courseName}`);
+  getCourseProjects: async (courseId: number): Promise<Project[]> => {
+    try {
+      const response = await ApiClient.getInstance().get<{
+        success: boolean;
+        data: Project[];
+      }>(
+        "course/courseProjects",
+        { courseId } // This will append as a query parameter
+      );
+
+      if (!response || !response.success || !Array.isArray(response.data)) {
+        console.error("Unexpected response format: ", response);
+        return [];
+      }
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching course projects: ", error);
+      return [];
+    }
   },
 
   createCourse: (body: {
@@ -83,7 +126,7 @@ const courseApi = {
     return ApiClient.getInstance().post<Response>("course", body);
   },
 
-  editCourse: (body: {
+  updateCourse: (body: {
     semester: string;
     courseName: string;
     studentsCanCreateProject: boolean;
@@ -91,7 +134,11 @@ const courseApi = {
     return ApiClient.getInstance().post<Response>("course", body);
   },
 
-  createProject: (body: {
+  deleteCourse: (id: number): Promise<Response> => {
+    return ApiClient.getInstance().delete<Response>(`course/${id}`);
+  },
+
+  addProject: (body: {
     projectName: string;
     courseId: number;
     studentsCanJoinProject: boolean;
