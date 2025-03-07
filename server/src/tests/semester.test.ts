@@ -1,128 +1,80 @@
 import { describe, it, expect } from "vitest";
 import { Semester, SemesterType } from "../Models/Semester";
 
-describe("Value Object creation:", () => {
-  describe("Winter Semester Validation", () => {
-    const expectedType = SemesterType.WINTER;
-    const expectedYear = "2024/25";
-    const expectedValue = "Winter 2024/25";
+describe("Semester Object creation:", () => {
+  const winterType = SemesterType.WINTER;
+  const winterYear = "2024/25";
+  const winterValue = "Winter 2024/25";
 
-    it("should validate all winter semester inputs in one test", () => {
-      const testCases = [
-        "ws2425",
-        "ws24/25",
-        "ws24",
-        "WS24",
-        "Winter 24",
-        "winter 2024",
-        "WS2024",
-        "ws 2024",
-      ];
+  const summerType = SemesterType.SUMMER;
+  const summerYear = "2025";
+  const summerValue = "Summer 2025";
 
-      const results = testCases.map((input) => {
-        const semester = Semester.create(input);
-        if (semester === null) {
-          return {
-            input,
-            type: "Invalid",
-            year: "Invalid",
-            value: "Invalid",
-          };
-        }
-        return {
-          input,
-          type: semester.getSemesterType(),
-          year: semester.getAcademicYear(),
-          value: semester.toString(),
-        };
-      });
+  const winterCases = [
+    "ws2425",
+    "ws24/25",
+    "ws24",
+    "WS24",
+    "Winter 24",
+    "winter 2024",
+    "WS2024",
+    "ws 2024",
+  ];
 
-      expect(results).toEqual(
-        testCases.map((input) => ({
-          input,
-          type: expectedType,
-          year: expectedYear,
-          value: expectedValue,
-        }))
-      );
-      // console.log(JSON.stringify(results, null, 2))
+  it("should create correct winter semester", () => {
+    winterCases.forEach((input) => {
+      const semester = Semester.create(input);
+      expect(semester.getSemesterType()).toEqual(winterType);
+      expect(semester.getAcademicYear()).toEqual(winterYear);
+      expect(semester.toString()).toEqual(winterValue);
     });
   });
 
-  describe("Summer Semester Validation", () => {
-    const expectedType = SemesterType.SUMMER;
-    const expectedYear = "2025";
-    const expectedValue = "Summer 2025";
+  const summerCases = [
+    "SS25",
+    "ss25",
+    "Summer 25",
+    "summer 2025",
+    "SS2025",
+    "ss 2025",
+  ];
 
-    it("should validate all summer semester inputs", () => {
-      const testCases = [
-        "SS25",
-        "ss25",
-        "Summer 25",
-        "summer 2025",
-        "SS2025",
-        "ss 2025",
-      ];
-
-      const results = testCases.map((input) => {
-        const semester = Semester.create(input);
-        if (semester === null) {
-          return {
-            input,
-            type: "Invalid",
-            year: "Invalid",
-            value: "Invalid",
-          };
-        }
-        return {
-          input,
-          type: semester.getSemesterType(),
-          year: semester.getAcademicYear(),
-          value: semester.toString(),
-        };
-      });
-
-      expect(results).toEqual(
-        testCases.map((input) => ({
-          input,
-          type: expectedType,
-          year: expectedYear,
-          value: expectedValue,
-        }))
-      );
-      // console.log(JSON.stringify(results, null, 2))
+  it("should create correct summer semester", () => {
+    summerCases.forEach((input) => {
+      const semester = Semester.create(input);
+      expect(semester.getSemesterType()).toEqual(summerType);
+      expect(semester.getAcademicYear()).toEqual(summerYear);
+      expect(semester.toString()).toEqual(summerValue);
     });
   });
 
-  describe("Input Handling Validation", () => {
-    it("should throw for all invalid inputs", () => {
-      const invalidInputs = [
-        "",
-        " ",
-        "invalid",
-        "202",
-        "WW24",
-        "Summer",
-        "2024/25",
-        "s25ws",
-        "2024 ws",
-        "wintersemester2024",
-        "wintersemester 2024",
-        "winter semester2024",
-        "sssemester25",
-        "sssemester 25",
-        "ss semester25",
-      ];
+  it("should throw for all invalid inputs", () => {
+    const invalidInputs = [
+      "",
+      " ",
+      "invalid",
+      "202",
+      "WW24",
+      "Summer",
+      "2024/25",
+      "s25ws",
+      "2024 ws",
+      "wintersemester2024",
+      "wintersemester 2024",
+      "winter semester2024",
+      "sssemester25",
+      "sssemester 25",
+      "ss semester25",
+    ];
 
-      invalidInputs.forEach((input) => {
-        expect(() => Semester.create(input)).toThrow();
-      });
-      console.log(`Tested invalid inputs: ${invalidInputs.join(", ")}`);
+    invalidInputs.forEach((input) => {
+      expect(() => Semester.create(input)).toThrow();
     });
+    console.log(`Tested invalid inputs: ${invalidInputs.join(", ")}`);
   });
 });
 
-describe("Value Object instances:", () => {
+describe("Semester Object instances:", () => {
   it("should create identical instances for the same input", () => {
     const s1 = Semester.create("WS2425");
     const s2 = Semester.create("winter24");

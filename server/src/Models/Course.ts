@@ -7,7 +7,7 @@ import { Semester } from "./Semester";
 
 export class Course implements Serializable {
   protected id: number;
-  protected courseName: string | null = null;
+  protected name: string | null = null;
   protected semester: string | null = null;
   protected projects: CourseProject[] = []; // 1:N
   protected schedular: CourseSchedule | null = null; // 1:1
@@ -17,14 +17,14 @@ export class Course implements Serializable {
 
   async readFrom(reader: Reader): Promise<void> {
     this.id = reader.readNumber("id") as number;
-    this.courseName = reader.readString("courseName");
+    this.name = reader.readString("courseName");
     this.semester = reader.readString("semester");
     this.projects = (await reader.readObjects("courseId", "projects")) as CourseProject[];
   }
 
   writeTo(writer: Writer): void {
     writer.writeNumber("id", this.id);
-    writer.writeString("courseName", this.courseName);
+    writer.writeString("courseName", this.name);
     if (this.semester) {
       writer.writeString("semester", this.semester.toString());
     } else {
@@ -38,7 +38,7 @@ export class Course implements Serializable {
   }
 
   public getName(): string | null {
-    return this.courseName;
+    return this.name;
   }
 
   public getSemester(): string | null {
@@ -52,7 +52,7 @@ export class Course implements Serializable {
 
   // Setters
   public setName(name: string | null) {
-    this.courseName = name;
+    this.name = name;
   }
 
   public setSemester(semester: string | null) {
