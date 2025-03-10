@@ -5,9 +5,6 @@ import dotenv from 'dotenv';
 import { DatabaseManager } from "./Models/DatabaseManager";
 import { Email } from './email';
 
-import { Semester } from "./Models/Semester";
-import { CourseManager } from "./CourseManager";
-
 dotenv.config();
 
 

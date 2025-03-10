@@ -27,7 +27,7 @@ const CourseWidget: React.FC<CourseProps> = ({
   type = "course",
   course = null,
   onFetch,
-}) => {
+}: CourseProps) => {
   const { message, DEFAULT, createCourse, addProject } = useCourse();
   const [showSchedule, setShowSchedule] = useState(false);
   const {

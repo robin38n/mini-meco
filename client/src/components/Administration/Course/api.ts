@@ -1,4 +1,3 @@
-import { CourseProject } from "@/components/Projects/CourseProject";
 import { Course, Project } from "./types";
 
 class ApiClient {

@@ -62,7 +62,7 @@ export const createProjectValidation = () => ({
   ],
 });
 
-export const useForm = <T extends Object>(
+export const useForm = <T extends object>(
   initialValues: T,
   validationSchema: ValidationSchema<T>
 ) => {

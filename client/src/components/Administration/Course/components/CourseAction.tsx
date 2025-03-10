@@ -58,7 +58,7 @@ export const CourseAction: React.FC<CourseActionProps> = ({
       tabIndex={0}
       {...rest}
     >
-      {label ? <span className="uppercase text-xs">{label}</span> : getIcon()}
+      {label ? <span className="text-xs uppercase">{label}</span> : getIcon()}
     </div>
   );
 };

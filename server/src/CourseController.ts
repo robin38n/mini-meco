@@ -1,7 +1,8 @@
-import { Request, Response } from "express";
+import { Application, Request, Response } from "express";
 import { Database } from "sqlite";
 import { CourseManager } from "./CourseManager";
 import { Course } from "./Models/Course";
+import { Exception } from "./Exceptions/Exception";
 
 /**
  * Controller for handling course-related HTTP requests.
@@ -19,15 +20,11 @@ export class CourseController {
    * Initializes API routes for course management.
    * @param app Express application instance
    */
-  init(app: any): void {
+  init(app: Application): void {
     app.post("/course", this.createCourse.bind(this));
     app.get("/course", this.getAllCourse.bind(this));
-    // app.get('/courses/:id', this.readCourse.bind(this));
-    // app.put('/courses/:id', this.updateCourse.bind(this));
-    // app.delete('/courses/:id', this.deleteCourse.bind(this));
     app.post("/courseProject", this.addProject.bind(this));
     app.get("/course/courseProjects", this.getCourseProjects.bind(this));
-    // app.get("/course/user", this.getUserCourses.bind(this));
   }
 
   async getAllCourse(req: Request, res: Response): Promise<void> {
@@ -44,7 +41,7 @@ export class CourseController {
         })),
       });
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(res, error as Exception);
     }
   }
 
@@ -71,7 +68,7 @@ export class CourseController {
         data: course,
       });
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(res, error as Exception);
     }
   }
 
@@ -99,7 +96,7 @@ export class CourseController {
         data: course,
       });
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(res, error as Exception);
     }
   }
 
@@ -111,7 +108,7 @@ export class CourseController {
         message: "Course delete not implemented yet",
       });
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(res, error as Exception);
     }
   }
 
@@ -123,7 +120,7 @@ export class CourseController {
         message: "Course update not implemented yet",
       });
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(res, error as Exception);
     }
   }
 
@@ -135,7 +132,7 @@ export class CourseController {
         message: "User courses not implemented yet",
       });
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(res, error as Exception);
     }
   }
 
@@ -158,7 +155,7 @@ export class CourseController {
         },
       });
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(res, error as Exception);
     }
   }
 
@@ -190,12 +187,12 @@ export class CourseController {
         })),
       });
     } catch (error) {
-      this.handleError(res, error);
+      this.handleError(res, error as Exception);
     }
   }
 
   // Error handling for responses
-  private handleError(res: Response, error: any): void {
+  private handleError(res: Response, error: Exception): void {
     console.error("Controller error:", error);
 
     // Check for specific error types and return responses

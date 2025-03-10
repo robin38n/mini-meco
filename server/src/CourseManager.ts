@@ -3,7 +3,6 @@ import { ObjectHandler } from "./ObjectHandler";
 import { DatabaseSerializableFactory } from "./Serializer/DatabaseSerializableFactory";
 import { Course } from "./Models/Course";
 import { CourseProject } from "./Models/CourseProject";
-import { DatabaseResultSetReader } from "./Serializer/DatabaseResultSetReader";
 import { DatabaseWriter } from "./Serializer/DatabaseWriter";
 import { MethodFailedException } from "./Exceptions/MethodFailedException";
 import { Semester } from "./Models/Semester";

@@ -26,7 +26,7 @@ vi.mock("react", async () => {
   let stateId = 0;
 
   return {
-    ...(actual as any),
+    ...(actual as typeof React),
     useState: vi.fn((initialValue) => {
       const id = stateId++;
 

@@ -30,8 +30,7 @@ export const useCourse = () => {
       setTimeout(() => {
         setMessage(null);
       }, 3000); // delay
-    }
-    7;
+    };
   };
 
   const getCourses = async (): Promise<Course[]> => {
@@ -72,7 +71,7 @@ export const useCourse = () => {
       );
     } catch (error) {
       showMessage(
-        `Fail to create Course: "${course.courseName}" for Semester: "${course.semester}"`,
+        `Fail to create Course: "${course.courseName}" for Semester: "${course.semester}, Error: ${error}"`,
         "error"
       );
     }
@@ -161,7 +160,7 @@ export const useCourse = () => {
       );
     } catch (error) {
       showMessage(
-        `Fail to create Project: "${project.projectName}" for courseId: "${project.courseId}"`,
+        `Fail to create Project: "${project.projectName}" for courseId: "${project.courseId}, Error: ${error}"`,
         "error"
       );
     }
@@ -175,6 +174,7 @@ export const useCourse = () => {
     getCourses,
     createCourse,
     updateCourse,
+    deleteCourse,
     getCourseProjects,
     addProject,
   };

@@ -20,18 +20,18 @@ export const FormField: React.FC<FormFieldProps> = ({
   value,
   onChange,
   error,
-}) => (
+}: FormFieldProps) => (
   <div className="flex-col items-center justify-between">
     <h4>{label}: </h4>
     <input
-      className={`w-full h-10 text-black bg-gray-50 border ${
+      className={`h-10 w-full border bg-gray-50 text-black ${
         error ? "border-red-500 ring-1 ring-red-500" : ""
       }`}
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
     />
-    {error && <div className="text-red-500 text-sm">{error}</div>}
+    {error && <div className="text-sm text-red-500">{error}</div>}
   </div>
 );
 
@@ -45,11 +45,11 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
   label,
   checked,
   onChange,
-}) => (
+}: CheckboxFieldProps) => (
   <div className="flex items-center space-x-3 text-black">
     <input
-      className="mr-4 h-6 w-6 cursor-pointer appearance-none rounded-md border-2 border-gray-400 bg-white 
-            checked:bg-blue-600 checked:ring-2 checked:ring-white transition-all"
+      className="mr-4 size-6 cursor-pointer appearance-none rounded-md border-2 border-gray-400 bg-white 
+            transition-all checked:bg-blue-600 checked:ring-2 checked:ring-white"
       type="checkbox"
       checked={checked}
       onChange={(e) => onChange(e.target.checked)}
@@ -70,7 +70,7 @@ export const DateInput: React.FC<DateInputProps> = ({
   value,
   onChange,
   className = "",
-}) => {
+}: DateInputProps) => {
   return (
     <div className={`flex items-center ${className}`}>
       {label && <label className="mr-2 text-gray-500">{label}</label>}
@@ -78,7 +78,7 @@ export const DateInput: React.FC<DateInputProps> = ({
         type="date"
         value={value}
         onChange={(e) => onChange(new Date(e.target.value))}
-        className="px-3 py-2 bg-white text-gray-500 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         style={{ colorScheme: "auto" }}
       />
     </div>
@@ -110,9 +110,8 @@ export const CourseForm: React.FC<CourseFormProps> = ({
   onSubmit,
   submitText = "submit",
   children,
-}) => {
+}: CourseFormProps) => {
   const isCourse = type === "course";
-  let success = false;
 
   // Use the correct type & validation schema based on form type<T>
   const {
@@ -141,8 +140,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
 
   const handleSubmit = async () => {
     await onSubmit();
-    success = true;
-    setTimeout(() => (success = false), 2000);
+    setTimeout(() => ({}), 2000);
   };
 
   const getButtonStyles = (isValid: boolean, message?: Message) => {
@@ -189,7 +187,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
       <div className="mt-2 flex flex-col items-end">
         <Button
           disabled={!isValid}
-          className={`px-4 py-2 w-fit rounded transition-all duration-300 ${getButtonStyles(
+          className={`w-fit rounded px-4 py-2 transition-all duration-300 ${getButtonStyles(
             isValid,
             message
           )}`}

@@ -88,8 +88,8 @@ const CourseAdmin: React.FC = () => {
         </div>
 
         {/* Course Section */}
-        <div className="flex p-3 mt-4 bg-gray-500">
-          <h2 className="font-bold text-2xl text-start">
+        <div className="mt-4 flex bg-gray-500 p-3">
+          <h2 className="text-start text-2xl font-bold">
             Course: {courses.length}
           </h2>
         </div>
@@ -108,7 +108,7 @@ const CourseAdmin: React.FC = () => {
         </div>
 
         {/* Project Section */}
-        <h2 className="font-bold text-2xl text-start p-3 mt-4 bg-gray-500">
+        <h2 className="mt-4 bg-gray-500 p-3 text-start text-2xl font-bold">
           Projects: {projects.length}
         </h2>
         <div className="w-full bg-white p-3">

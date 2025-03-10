@@ -92,14 +92,14 @@ const CourseSchedule: React.FC<CourseScheduleProps> = ({ course, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex size-full items-center justify-center bg-gray-900/50">
-      <div className="p-4 w-1/3 flex flex-col items-center justify-center rounded mt-4 text-gray-500 bg-white shadow">
-        <h2 className="font-bold text-2xl text-black">Course Scheduler</h2>
+      <div className="mt-4 flex w-1/3 flex-col items-center justify-center rounded bg-white p-4 text-gray-500 shadow">
+        <h2 className="text-2xl font-bold text-black">Course Scheduler</h2>
         <h3>
           ID: {course.id}, Name: {course.courseName} and Semester:{" "}
           {course.semester}
         </h3>
 
-        <div className="w-fit flex flex-col items-center">
+        <div className="flex w-fit flex-col items-center">
           <DateInput
             label="Course start:"
             value={startDate.toISOString().substring(0, 10)}
@@ -116,7 +116,7 @@ const CourseSchedule: React.FC<CourseScheduleProps> = ({ course, onClose }) => {
         </div>
 
         <div className="mb-4 w-fit items-center">
-          <h3 className="font-bold text-black px-2">Submission:</h3>
+          <h3 className="px-2 font-bold text-black">Submission:</h3>
           <DateInput
             label="Add Date:"
             className="my-2 justify-center"
@@ -134,7 +134,7 @@ const CourseSchedule: React.FC<CourseScheduleProps> = ({ course, onClose }) => {
                   <li key={`left-${index}`} className="flex items-center p-2">
                     <span>{formatDateWithLeadingZeros(slot)}</span>
                     <Button
-                      className="ml-2 bg-blue-500 text-white rounded"
+                      className="ml-2 rounded bg-blue-500 text-white"
                       onClick={() => removeSubmission(slot)}
                     >
                       Remove
@@ -151,7 +151,7 @@ const CourseSchedule: React.FC<CourseScheduleProps> = ({ course, onClose }) => {
                   <li key={`right-${index}`} className="flex items-center p-2">
                     <span>{formatDateWithLeadingZeros(slot)}</span>
                     <Button
-                      className="ml-2 bg-blue-500 text-white rounded"
+                      className="ml-2 rounded bg-blue-500 text-white"
                       onClick={() => removeSubmission(slot)}
                     >
                       Remove
@@ -165,13 +165,13 @@ const CourseSchedule: React.FC<CourseScheduleProps> = ({ course, onClose }) => {
 
         <div className="flex justify-center gap-2">
           <Button
-            className="px-4 py-2 bg-gray-300 text-black rounded"
+            className="rounded bg-gray-300 px-4 py-2 text-black"
             onClick={onClose}
           >
             Close
           </Button>
           <Button
-            className="px-4 py-2 bg-blue-500 text-white rounded"
+            className="rounded bg-blue-500 px-4 py-2 text-white"
             onClick={() =>
               console.log({ startDate, endDate, submission, course })
             }
