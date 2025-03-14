@@ -8,8 +8,9 @@
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
-    "test":"vitest run tests/dummy.test.ts --reporter=verbose",
-    "lint": "eslint . --report-unused-disable-directives --max-warnings 0"
+    "test":"vitest run --reporter=verbose",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@octokit/rest": "^21.0.2",

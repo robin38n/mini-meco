@@ -1,5 +1,5 @@
 import UserAdmin from "./UserAdmin";
-import ProjectAdmin from "./ProjectAdmin";
+import CourseAdmin from "@/components/Administration/CourseAdmin";
 import "./Administration.css";
 
 const Administration = () => {
@@ -10,7 +10,7 @@ const Administration = () => {
           <UserAdmin />
         </div>
         <div className="AdminComponents">
-          <ProjectAdmin />
+          <CourseAdmin />
         </div>
       </div>
     </div>

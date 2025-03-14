@@ -27,9 +27,10 @@ const ReloadButton = ({ loading, onClick }: { loading: boolean, onClick: () => v
  * @param rowsPerPage number of rows to display per page
  * @param filterOptions.key id of filtered column
  * @param filterOptions.options array of values to filter by
+ * @param children
  * @returns 
  */
-const Table = ({ headings, loading, loadData, data, rowsPerPage = 0, filterOptions }: { headings: Array<string>, loading: boolean, loadData: () => void | undefined, rowsPerPage?: number, data: Array<Array<string | JSX.Element>>, filterOptions?: { key: number, options: Array<string> } }) => {
+const Table = ({ headings, loading, loadData, data, rowsPerPage = 0, filterOptions, children }: { headings: Array<string>, loading: boolean, loadData: () => void | undefined, rowsPerPage?: number, data: Array<Array<number | string | boolean | JSX.Element>>, filterOptions?: { key: number, options: Array<string> }, children?: React.ReactNode }) => {
     const [page, setPage] = useState<number>(0);
     const [filter, setFilter] = useState<Array<string>>(filterOptions ? filterOptions.options : []);
 
@@ -56,6 +57,7 @@ const Table = ({ headings, loading, loadData, data, rowsPerPage = 0, filterOptio
                         isFiltered &&
                         <CheckboxSelect options={filterOptions.options} active={filter} setActive={(f) => { setFilter(f); setPage(0); }}>Filter</CheckboxSelect>
                     }
+                    {children}
                 </div>
                 <div>
                     <ReloadButton loading={loading} onClick={loadData} />

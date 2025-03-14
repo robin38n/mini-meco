@@ -11,6 +11,7 @@ export class User extends Visitor implements Serializable {
   protected githubUsername: string | null = null;
   protected email: Email | null = null;
   protected status: string = "unconfirmed";
+  protected role: string = "USER"; // @todo: remove and set UserRole
   protected password: string | null = null;
   protected resetPasswordToken: string | null = null;
   protected resetPasswordExpire: number | null = null;
@@ -39,6 +40,7 @@ export class User extends Visitor implements Serializable {
       this.email = null;
     }
     this.status = reader.readString("status") as string;
+    this.role = reader.readString("userRole") as string;
     this.password = reader.readString("password");
     this.resetPasswordToken = reader.readString("resetPasswordToken");
     this.resetPasswordExpire = reader.readNumber("resetPasswordExpire");
@@ -56,6 +58,7 @@ export class User extends Visitor implements Serializable {
       writer.writeString("email", this.email.toString());
     }
     writer.writeString("status", this.status);
+    writer.writeString("userRole", this.role);
     writer.writeString("password", this.password);
     writer.writeString("resetPasswordToken", this.resetPasswordToken);
     writer.writeNumber("resetPasswordExpire", this.resetPasswordExpire);
@@ -89,6 +92,10 @@ export class User extends Visitor implements Serializable {
 
   public getStatus(): string {
     return this.status;
+  }
+
+  public getRole(): string {
+    return this.role;
   }
 
   public getPassword(): string | null{
@@ -126,6 +133,10 @@ export class User extends Visitor implements Serializable {
 
   public setStatus(status: string) {
     this.status = status;
+  }
+
+  public setRole(role: string){
+    this.role = role;
   }
 
   public setPassword(password: string | null){

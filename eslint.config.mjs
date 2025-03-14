@@ -39,7 +39,8 @@ export default [
             ...typescriptPlugin.configs.recommended.rules,
             ...tailwindPlugin.configs.recommended.rules,
             'tailwindcss/no-custom-classname': 'off',
-            'react/react-in-jsx-scope': 'off'
+            'react/react-in-jsx-scope': 'off',
+            'react/prop-types': 'off',  // This line disable prop-types checking
         },
         settings: {
             react: {

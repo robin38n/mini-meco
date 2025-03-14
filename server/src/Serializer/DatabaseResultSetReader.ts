@@ -31,7 +31,7 @@ export class DatabaseResultSetReader implements Reader {
         const result = await this.resultSet;
         // either read all or read single row
         if (Array.isArray(result)) {
-            return await this.readAll(result, Constructor);
+            return await this.readAll(result, Constructor); // This is now a Promise<T[]>
         } else { // Read single row:
             return await this.readRow<T>(result, Constructor);
         }
@@ -39,12 +39,8 @@ export class DatabaseResultSetReader implements Reader {
 
     readAll<T extends Serializable> (
         result: ResultRow[], Constructor: new (id: number) => T
-    ): T[] {
-        let arr: T[] = [];
-        result.forEach(async (row: ResultRow) => {
-            arr.push(await this.readRow<T>(row, Constructor));
-        });
-        return arr;
+    ): Promise<T[]> {
+        return Promise.all(result.map((row: ResultRow) => this.readRow<T>(row, Constructor)));
     }
 
     async readRow<T extends Serializable> (

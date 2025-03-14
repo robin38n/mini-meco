@@ -5,26 +5,8 @@ import dotenv from 'dotenv';
 import { DatabaseManager } from "./Models/DatabaseManager";
 import { Email } from './email';
 
-import { Semester } from "./Models/Semester";
-
 dotenv.config();
 
-export const createCourse = async (req: Request, res: Response, db: Database) => {
-  const { semester, courseName } = req.body;
-  if (!semester || !courseName) {
-    return res.status(400).json({ message: "Please fill in semester and course name" });
-  }
-
-  let semesterInput = semester; // Raw input from the request
-  try {
-    const semester = Semester.create(semesterInput); // Uses the Semester's internal validation
-    await db.run("INSERT INTO courses (semester, courseName) VALUES (?, ?)", [semester.toString(), courseName]);
-    res.status(201).json({ message: "Course created successfully" });
-  } catch (error) {
-    console.error("Error during project group creation:", error);
-    res.status(500).json({ message: "Course creation failed", error });
-  }
-}
 
 export const createProject = async (req: Request, res: Response, db: Database) => {
   const { courseName, projectName } = req.body;
@@ -49,31 +31,6 @@ export const createProject = async (req: Request, res: Response, db: Database) =
   }
 };
 
-
-export const editCourse = async (req: Request, res: Response, db: Database) => {
-  const { courseName, newSemester, newCourseName } = req.body;
-
-  if (!newSemester || !newCourseName) {
-    return res.status(400).json({ message: "Please fill in semester and project group name" });
-  } 
-
-  try {
-    const semester = Semester.create(newSemester); // @todo Shared ValueType method?
-    const courseId = DatabaseManager.getCourseIdFromName(db, courseName);
-    console.log(`Executing SQL: UPDATE courses SET semester = '${semester.toString()}', courseName = '${newCourseName}' WHERE id = '${courseId}'`);
-
-    await db.run(
-      `UPDATE courses SET semester = ?, courseName = ? WHERE id = ?`,
-      [semester.toString(), newCourseName, courseId]
-    );
-
-    res.status(201).json({ message: "Course edited successfully" });
-  } catch (error) {
-    console.error("Error during Course edition:", error);
-    res.status(500).json({ message: "Course edited failed", error });
-  }
-}
-
 export const editProject = async (req: Request, res: Response, db: Database) => {
   const { newCourseName, projectName, newProjectName } = req.body;
 
@@ -93,37 +50,6 @@ export const editProject = async (req: Request, res: Response, db: Database) => 
         console.error("Error during project edition:", error);
         res.status(500).json({ message: "Project edition failed", error });
     }
-};
-
-
-
-export const getSemesters = async (req: Request, res: Response, db: Database) => {
-  try {
-    const semesters = await db.all("SELECT DISTINCT semester FROM courses");
-    res.json(semesters);
-  } catch (error) {
-    console.error("Error during semester retrieval:", error);
-    res.status(500).json({ message: "Failed to retrieve semesters", error });
-  }
-}
-
-export const getCourses = async (req: Request, res: Response, db: Database) => {
-  const { semester } = req.query;
-  let query = "SELECT * FROM courses";
-  let params = [];
-
-  if (semester) {
-    query += " WHERE semester = ?";
-    params.push(semester);
-  }
-
-  try {
-    const projectGroups = await db.all(query, params);
-    res.json(projectGroups);
-  } catch (error) {
-    console.error("Error during course retrieval:", error);
-    res.status(500).json({ message: "Failed to retrieve courses", error });
-  }
 };
 
 export const getProjects = async (req: Request, res: Response, db: Database) => {
@@ -227,9 +153,9 @@ export const getUserCourses = async (req: Request, res: Response, db: Database) 
 
   try {
     const projectId = DatabaseManager.getProjectIdFromName(db, projectName?.toString());
-    const projectGroups = await db.get('SELECT DISTINCT courseId FROM projects WHERE id = ?', [projectId]);
-    if (projectGroups) {
-      res.json(projectGroups);
+    const allCourse = await db.get('SELECT DISTINCT courseId FROM projects WHERE id = ?', [projectId]);
+    if (allCourse) {
+      res.json(allCourse);
     } else {
       res.status(404).json({ message: "Course not found" });
     }
@@ -399,49 +325,6 @@ export const getEnrolledCourses = async (req: Request, res: Response, db: Databa
   }
 };
 
-export const getProjectsForCourse = async (req: Request, res: Response, db: Database) => {
-  const { courseName} = req.query;
-
-  let userEmail : Email;
-  if (!req.query.email || typeof req.query.email !== 'string') {
-      return res.status(400).json({ message: 'User email is required' });
-    }
-  try {
-      userEmail = new Email(req.query.email as string);
-  } catch (IllegalArgumentException) {
-      return res.status(400).json({ message: 'Invalid email address' });
-  }
-
-  if (!courseName) {
-    return res.status(400).json({ message: "Course Name and user Email are required" });
-  }
-
-  try {
-    const courseId = DatabaseManager.getCourseIdFromName(db, courseName.toString());
-    const userId = DatabaseManager.getUserIdFromEmail(db, userEmail.toString());
-
-    const enrolledProjects = await db.all(
-      `SELECT projects.id
-             FROM user_projects
-             INNER JOIN projects ON user_projects.prjectId = projects.id
-             WHERE courseId = ? AND userId = ?`,
-      [courseId, userId]
-    );
-
-    const availableProjects = await db.all(
-      `SELECT p.id
-             FROM projects p
-             LEFT JOIN user_projects up ON (p.id = up.projectId) AND (up.userId = ?)
-             WHERE p.courseId = ? AND up.userid IS NULL`,
-      [userId, courseId]
-    );
-
-    res.json({ enrolledProjects, availableProjects });
-  } catch (error) {
-    console.error("Error retrieving projects for course:", error);
-    res.status(500).json({ message: "Failed to retrieve projects for course", error });
-  }
-};
 
 export const getRoleForProject = async (req: Request, res: Response, db: Database) => {
   const { projectName } = req.query;
