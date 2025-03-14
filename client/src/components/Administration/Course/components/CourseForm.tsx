@@ -7,6 +7,7 @@ import {
 } from "@/hooks/useForm";
 import Button from "react-bootstrap/esm/Button";
 import { Message } from "./CourseMessage";
+import { cn } from "@/lib/utils";
 
 interface FormFieldProps {
   label: string;
@@ -24,9 +25,13 @@ export const FormField: React.FC<FormFieldProps> = ({
   <div className="flex-col items-center justify-between">
     <h4>{label}: </h4>
     <input
-      className={`h-10 w-full border bg-gray-50 text-black ${
-        error ? "border-red-500 ring-1 ring-red-500" : ""
-      }`}
+      // className={`h-10 w-full border bg-gray-50 text-black ${
+      //   error ? "border-red-500 ring-1 ring-red-500" : ""
+      // }`}
+      className={cn(
+        "h-10 w-full bg-gray-50 text-black",
+        error && "border-red-500 ring-1 ring-red-500"
+      )}
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -140,15 +145,20 @@ export const CourseForm: React.FC<CourseFormProps> = ({
 
   const handleSubmit = async () => {
     await onSubmit();
-    setTimeout(() => ({}), 2000);
   };
 
   const getButtonStyles = (isValid: boolean, message?: Message) => {
-    if (!isValid) return "bg-gray-400 text-gray-200 cursor-not-allowed";
-    if (message?.type === "success") return "bg-green-500 text-white";
-    if (message?.type === "error")
-      return "bg-red-500 text-white hover:bg-red-600";
-    return "bg-blue-500 text-white hover:bg-blue-600";
+    return cn(
+      "w-fit rounded px-3 py-1 transition-all duration-300 bg-blue-500 text-white hover:bg-blue-600",
+      {
+        // Disabled
+        "bg-gray-400 text-gray-200 cursor-not-allowed": !isValid,
+        // Success
+        "bg-green-500": isValid && message?.type === "success",
+        // Error
+        "bg-red-500": isValid && message?.type === "error",
+      }
+    );
   };
 
   return (
@@ -187,10 +197,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
       <div className="mt-2 flex flex-col items-end">
         <Button
           disabled={!isValid}
-          className={`w-fit rounded px-4 py-2 transition-all duration-300 ${getButtonStyles(
-            isValid,
-            message
-          )}`}
+          className={getButtonStyles(isValid, message)}
           onClick={handleSubmit}
         >
           {submitText.toUpperCase()}

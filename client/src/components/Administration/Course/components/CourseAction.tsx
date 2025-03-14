@@ -1,6 +1,7 @@
 import React from "react";
 import Add from "@/assets/Add.png";
 import Edit from "@/assets/Edit.png";
+import { cn } from "@/lib/utils";
 
 interface CourseActionProps {
   label?: string;
@@ -21,7 +22,7 @@ export const CourseAction: React.FC<CourseActionProps> = ({
   type = "course",
   action,
   onClick,
-  className = "",
+  className,
   dataCy,
   ...rest
 }) => {
@@ -37,22 +38,14 @@ export const CourseAction: React.FC<CourseActionProps> = ({
         return null;
     }
   };
-  
-  // Button styling based on action type
-  const getButtonClass = () => {
-    const baseClass = "flex size-full items-center gap-2 cursor-pointer text-white";
-
-    if (type === "schedule") {
-      return `${baseClass} btn btn-schedule bg-blue-600 text-white px-3 py-1 rounded ${className}`;
-    }
-    
-    return `${baseClass} ${className}`;
-  };
 
   return (
     <div
       onClick={onClick}
-      className={getButtonClass()}
+      className={cn(
+        "flex size-full cursor-pointer items-center rounded bg-blue-600 px-3 py-1 text-white",
+        className
+      )}
       data-cy={dataCy || `${action}-${type}-trigger`}
       role="button"
       tabIndex={0}

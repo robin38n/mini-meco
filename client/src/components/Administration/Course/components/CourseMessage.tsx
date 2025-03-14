@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
 export type MessageType = "success" | "error" | "info";
 
@@ -12,14 +13,17 @@ interface CourseMessageProps {
 }
 
 const CourseMessage: React.FC<CourseMessageProps> = ({ message }) => {
-  // CSS class based on the message type.
-  const messageClass = {
-    success: "text-green-600",
-    error: "text-red-600",
-    info: "text-blue-600",
-  }[message.type];
-
-  return <div className={`text-sm ${messageClass}`}>{message.text}</div>;
+  return (
+    <div
+      className={cn("text-sm", {
+        "text-green-600": message.type === "success",
+        "text-red-600": message.type === "error",
+        "text-blue-600": message.type === "info",
+      })}
+    >
+      {message.text}
+    </div>
+  );
 };
 
 export default CourseMessage;
