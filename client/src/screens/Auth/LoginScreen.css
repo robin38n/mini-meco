@@ -36,7 +36,8 @@ body {
     border-radius: 10px;
     background-color: var(--color-white);
     width: 522px;
-    height: 490px;
+    display: inline-block;
+    padding: 50px;
     justify-content: center;
   }
 
@@ -45,7 +46,7 @@ body {
     display: inline-block;
     color: var(--color-black);
     font-weight: bold;
-    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 .submit-container{
@@ -74,37 +75,61 @@ body {
     color: white;
 }
 
+.primary{
+    background-color: #219A0D;
+    color: white;
+}
+
+.secondary{
+    background-color: rgb(26, 70, 248);
+    color: white;
+}
+
 .input{
+    display: flex;
     border: none;
     width: 100%;
     padding: 10px 15px;
     margin: 8px 0;
 }
 
+.validation {
+    background-color: rgba(255, 63, 63, 0.2);
+    border: 2px solid rgba(255, 63, 63, 0.4);
+    border-radius: 5px;
+}
+
 .inputs{
     justify-content: flex-start;
-    display:flex;
+    display: flex;
     margin-right: 25px;
     flex-direction: column;
 }
 
 .inputBox{
-    border: none;
     width: 70%;
     height: 50px;
     border-bottom: 2px solid #000;
+    color: #000;
+    background: transparent;
     font-size: medium;
     margin-right: 20px;
     font-family: var(--font-kaisei-decol);
 }
 
 .input img{
+    width: 55px;
+    height: 45px;
     margin-right: 20px;
     margin-top: 5px;
 }
 
 .forget-password span{
     color: rgb(26, 70, 248);
+}
+
+.forget-password {
+    color: black
 }
 
 .ForgotPasswordText{

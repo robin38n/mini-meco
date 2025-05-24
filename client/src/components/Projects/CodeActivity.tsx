@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ReturnButton from "../Components/return";
 import { Octokit } from "@octokit/rest";
+import { Endpoints } from "@octokit/types";
 import "./CodeActivity.css";
 import {
   LineChart,
@@ -14,11 +15,20 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+type ArrayElement<T> = T extends (infer U)[] ? U : never;
+type Commit = ArrayElement<Endpoints["GET /repos/{owner}/{repo}/commits"]["response"]["data"]>;
+type Sprint = {
+  id: number,
+  projectGroupName: string,
+  sprintName: string,
+  endDate: number,
+};
+
 const CodeActivity: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [commits, setCommits] = useState<any[]>([]);
+  const [commits, setCommits] = useState<Commit[]>([]);
   // GitHub API only returns 30 results on subsequent requests
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
@@ -36,9 +46,7 @@ const CodeActivity: React.FC = () => {
     email: string;
     githubUsername: string;
   } | null>(null);
-  // @ts-ignore: suppress unused variable warning
-  const [projectGroups, setProjectGroups] = useState<string[]>([]);
-  const [selectedProjectGroup, setSelectedProjectGroup] = useState<string>("");
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [commitsPerSprint, setCommitsPerSprint] = useState<any[]>([]);
 
   const handleNavigation = () => {
@@ -57,12 +65,12 @@ const CodeActivity: React.FC = () => {
   }, [location.state]);
 
   useEffect(() => {
-    const fetchProjectGroup = async () => {
+    const fetchCourse = async () => {
       if (!projectName) return;
 
       try {
         const response = await fetch(
-          `http://localhost:3000/getUserProjectGroups?projectName=${encodeURIComponent(
+          `http://localhost:3000/course/user?projectName=${encodeURIComponent(
             projectName
           )}`
         );
@@ -70,8 +78,8 @@ const CodeActivity: React.FC = () => {
           const text = await response.text();
           if (text) {
             const data = JSON.parse(text);
-            if (data && data.projectGroupName) {
-              setSelectedProjectGroup(data.projectGroupName);
+            if (data && data.courseName) {
+              setSelectedCourse(data.courseName);
             }
           } else {
             console.error("Empty response body");
@@ -84,7 +92,7 @@ const CodeActivity: React.FC = () => {
       }
     };
 
-    fetchProjectGroup();
+    fetchCourse();
   }, [projectName]);
 
   useEffect(() => {
@@ -121,8 +129,8 @@ const CodeActivity: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/getProjectGitHubURL?email=${encodeURIComponent(
-          user.email
+        `http://localhost:3000/user/projects?userEmail=${encodeURIComponent(
+          user.email.toString()
         )}&projectName=${encodeURIComponent(projectName)}`
       );
       const data = await response.json();
@@ -151,41 +159,41 @@ const CodeActivity: React.FC = () => {
 
   useEffect(() => {
     const fetchAllSprints = async () => {
-      if (!selectedProjectGroup) return;
+      if (!selectedCourse) return;
   
       try {
         const response = await fetch(
-          `http://localhost:3000/sprints?projectGroupName=${encodeURIComponent(
-            selectedProjectGroup
+          `http://localhost:3000/sprints?courseName=${encodeURIComponent(
+            selectedCourse
           )}`
         );
-        const fetchedSprints = await response.json();
-  
+        const fetchedSprints: Sprint[] = await response.json();
+
         // Only have end date, so calculate start date
         const updatedSprints = fetchedSprints.map(
-          (sprint: any, index: number) => {
-            const sprintName = `sprint${index}`; 
+          (sprint, index) => {
+            const sprintName = `sprint${index}`;
             if (index === 0) {
               // First sprint: start date is one week before end date
               const startDate = new Date(sprint.endDate);
               startDate.setDate(startDate.getDate() - 7);
-              return { ...sprint, startDate, name: sprintName }; 
+              return { ...sprint, startDate, name: sprintName };
             } else {
               // Other sprints: start date is the previous sprint's end date
               const startDate = new Date(fetchedSprints[index - 1].endDate);
-              return { ...sprint, startDate, name: sprintName }; 
+              return { ...sprint, startDate, name: sprintName };
             }
           }
         );
-  
+
         setSprints(updatedSprints);
       } catch (error) {
         console.error("Error fetching sprints:", error);
       }
     };
-  
+
     fetchAllSprints();
-  }, [selectedProjectGroup]);
+  }, [selectedCourse]);
   
 
   const getCommits = async (page: number) => {
@@ -214,7 +222,7 @@ const CodeActivity: React.FC = () => {
 
       console.log("Fetched commits:", response.data);
 
-      const filteredCommits = response.data.filter((commit) => {
+      const filteredCommits: Commit[] = response.data.filter((commit) => {
         const commitDate = commit.commit.author?.date
           ? new Date(commit.commit.author.date)
           : new Date();
@@ -272,20 +280,19 @@ const CodeActivity: React.FC = () => {
         const sprintStart = new Date(sprint.startDate);
         const sprintEnd = new Date(sprint.endDate);
         const commitsInSprint = commits.filter((commit) => {
-          const commitDate = new Date(commit.commit.author.date);
+          const commitDate = new Date(commit.commit.author?.date ?? 0);
           return commitDate >= sprintStart && commitDate <= sprintEnd;
         });
         return { sprint: sprint.name, count: commitsInSprint.length }; // Ensure `sprint` is the name
       });
-  
+
       setCommitsPerSprint(commitsCount);
     };
-  
+
     if (commits.length && sprints.length) {
       calculateCommitsPerSprint();
     }
   }, [commits, sprints]);
-  
 
   return (
     <div onClick={handleNavigation}>

@@ -4,18 +4,41 @@ import UserNameIcon from "./../../assets/UserNameIcon.png";
 import EmailIcon from "./../../assets/EmailIcon.png";
 import PasswordIcon from "./../../assets/PasswordIcon.png";
 import { useNavigate } from "react-router-dom";
+import EmailWidget from "@/components/Components/EmailWidget.tsx";
+import PasswordWidget from "@/components/Components/PasswordWidget";
 
 const LoginScreen = () => {
   const navigate = useNavigate();
-  const [action, setAction] = useState("Login");
+  const [action, setAction] = useState<"Registration" | "Login">("Login");
+  const [validationOn, setValidationOn] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
 
+  // Updates email based on the value from EmailWidget
+  const handleEmailChange = (newEmail: string) => {
+    setEmail(newEmail);
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+  };
+
   const handleSubmit = async () => {
-    const endpoint = action === "Registration" ? "/register" : "/login";
-    const body: { [key: string]: string } = { email, password };
+    if (!validationOn) {
+      setValidationOn(true);
+    }
+
+    if (!email || !password || (action === "Registration" && !name)) {
+      return;
+    }
+
+    const endpoint = action === "Registration" ? "/user" : "/session";
+    const body: { [key: string]: string } = {
+      email,
+      password,
+    };
     // Add name to the body if the action is Registration (not Login)
     if (action === "Registration") {
       body.name = name;
@@ -25,9 +48,9 @@ const LoginScreen = () => {
       const response = await fetch(`http://localhost:3000${endpoint}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", 
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(body), 
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -38,7 +61,7 @@ const LoginScreen = () => {
         throw new Error(data.message || "Something went wrong");
       }
 
-      if (endpoint === "/login") {
+      if (endpoint === "/session") {
         localStorage.setItem("token", data.token);
         localStorage.setItem("username", data.name);
         localStorage.setItem("email", data.email);
@@ -62,22 +85,15 @@ const LoginScreen = () => {
       <div className="container">
         <div className="header">
           <div className="text">{action}</div>
-          {action === "Login" ? (
-            <>
-              {" "}
-              <br></br>{" "}
-            </>
-          ) : (
-            ""
-          )}
-          <div className="underline"></div>
         </div>
         <div className="inputs">
           {action === "Registration" && (
-            <div className="input">
+            <div
+              className={"input" + (validationOn && !name ? " validation" : "")}
+            >
               <img className="username-icon" src={UserNameIcon} alt="" />
               <input
-                className="inputBox"
+                className={"inputBox"}
                 type="text"
                 placeholder="Please enter your name"
                 value={name}
@@ -86,25 +102,28 @@ const LoginScreen = () => {
             </div>
           )}
 
-          <div className="input">
+          <div
+            className={"input" + (validationOn && !email ? " validation" : "")}
+          >
             <img className="email-icon" src={EmailIcon} alt="" />
-            <input
-              className="inputBox"
-              type="email"
-              placeholder="Please enter your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <EmailWidget onEmailChange={handleEmailChange} action={action} />
+            {validationOn && !email && (
+              <span style={{ color: "red", fontWeight: "bold" }}>
+                Please enter a valid email address.
+              </span>
+            )}
           </div>
-          <div className="input">
+          <div
+            className={
+              "input" + (validationOn && !password ? " validation" : "")
+            }
+          >
             <img className="password-icon" src={PasswordIcon} alt="" />
-            <input
-              className="inputBox"
-              type="password"
-              placeholder="Please enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <PasswordWidget
+              password={password}
+              onPasswordChange={handlePasswordChange}
+              action={action}
+            ></PasswordWidget>
           </div>
         </div>
         {action === "Login" && (
@@ -114,19 +133,32 @@ const LoginScreen = () => {
         )}
         <div className="submit-container">
           <div
-            className={action === "Login" ? "submit" : "submit gray"}
+            className={
+              "submit " + (action === "Login" ? "primary" : "secondary")
+            }
             onClick={() => {
+              if (action === "Login") {
+                handleSubmit();
+                return;
+              }
               setAction("Login");
-              handleSubmit();
+              setValidationOn(false);
             }}
           >
             Login
           </div>
           <div
-            className={action === "Registration" ? "submit" : "submit gray"}
+            className={
+              "submit " + (action === "Registration" ? "primary" : "secondary")
+            }
             onClick={() => {
-              setAction("Registration");
-              handleSubmit();
+              if (action === "Registration") {
+                handleSubmit();
+                return;
+              } else {
+                setAction("Registration");
+                setValidationOn(false);
+              }
             }}
           >
             Sign Up

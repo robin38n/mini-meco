@@ -1,279 +1,209 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import "./UserAdmin.css"
+
+import { useState } from 'react';
+
 import ReturnButton from "../Components/return";
-import "./UserAdmin.css";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
+import Table from "../Components/Table";
+
 import Edit from "./../../assets/Edit.png";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import Button from "react-bootstrap/esm/Button";
+import EmailIcon from "./../../assets/EmailIcon.png";
 
-const UserAdmin: React.FC = () => {
-  const navigate = useNavigate();
+import { Email } from '../../../../server/src/email';
 
-  const [status, setStatus] = useState<string | null>("");
-  const [newStatus, setNewStatus] = useState<string | null>("");
-  const [users, setUsers] = useState<{ name: string; email: string }[]>([]);
+const userStatus = ["unconfirmed", "confirmed", "suspended", "removed"];
 
-  const [message, setMessage] = useState<string | null>(null);
+interface User {
+    id: number;
+    email: Email;
+    name: string;
+    githubUsername: string | null;
+    status: string;
+    password: string;
+    userRole: string;
+}
 
-  const handleNavigation = () => {
-    navigate("/user-admin");
-  };
+function checkError(response: Response) {
+    if (response.status >= 200 && response.status <= 299) {
+        return response;
+    } else {
+        throw Error(response.statusText);
+    }
+}
 
-  const fetchUserStatus = async (status: string) => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/getUserStatus?status=${status}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+function UserEdit({ user, onClose }: { user: User; onClose: (update: boolean) => void }) {
+    const [email, setEmail] = useState<Email>(user.email);
+    const [githubUsername, setGithubUsername] = useState<string>(user.githubUsername || "");
+    const [status, setStatus] = useState<string>(user.status);
+    const [password, setPassword] = useState<string>();
+    const [userRole, setUserRole] = useState<string>(user.userRole);
+
+    function onSave() {
+        const promises = []
+        if (githubUsername && githubUsername !== user.githubUsername) {
+            promises.push(fetch(`http://localhost:3000/user/githubUsername`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "userEmail": user.email.toString(), "newGithubUsername": githubUsername })
+                })
+                .then(checkError)
+                .catch(console.error));
         }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch users");
-      }
-
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (status) {
-      fetchUserStatus(status);
-    }
-  }, [status]);
-
-  const handleUserStatusChange = async (email: string, status: string) => {
-
-    try {
-      const response = await fetch("http://localhost:3000/updateUserStatus", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, status }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error("Failed to update user status");
-      }
-
-      setMessage(data.message || "Success!");
-      if (data.message.includes("successfully")) {
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error("Error updating user status:", error);
-      setMessage("Failed to update user status");
-    }
-  };
-
-  const sendConfirmationEmail = async (email: string) => {
-    try {
-      const response = await fetch(
-        "http://localhost:3000/sendConfirmationEmail",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
+        if (status !== user.status) {
+            promises.push(fetch(`http://localhost:3000/updateUserStatus`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "userEmail": user.email.toString(), "status": status })
+                })
+                .then(checkError)
+                .catch(console.error));
         }
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setMessage(data.message || "Confirmation email sent successfully!");
-        if (data.message.includes("successfully")) {
-          window.location.reload();
+        if (password) {
+            promises.push(fetch(`http://localhost:3000/user/password`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "userEmail": user.email.toString(), "password": password })
+                })
+                .then(checkError)
+                .catch(console.error));
         }
-      } else {
-        throw new Error(data.message || "Failed to send confirmation email");
-      }
-    } catch (error) {
-      console.error("Error sending confirmation email:", error);
-      setMessage("Failed to send confirmation email");
-    }
-  };
-
-  const changeAllConfirmedUsersStatus = async (status: string) => {
-    
-    try {
-      const response = await fetch(
-        "http://localhost:3000/updateAllConfirmedUsers",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status }),
+        if (userRole !== user.userRole) {
+            promises.push(fetch(`http://localhost:3000/user/role`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "email": user.email, "role": userRole })
+                })
+                .then(checkError)
+                .catch(console.error));
         }
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setMessage(
-          data.message ||
-            `All confirmed users have been changed to ${newStatus}`
-        );
-        window.location.reload();
-      } else {
-        throw new Error(data.message || "Failed to update all confirmed users");
-      }
-    } catch (error) {
-      console.error("Error updating all confirmed users:", error);
-      setMessage("Failed to update all confirmed users");
-    }
-  };
 
-  return (
-    <div onClick={handleNavigation}>
-      <ReturnButton />
-      <div className="DashboardContainer">
-        <h1>User Admin</h1>
-      </div>
-      <div className="BigContainerUserAdmin">
-        <div className="SelectWrapperUserAdmin">
-          <Select onValueChange={(value) => setStatus(value)}>
-            <SelectTrigger className="SelectTrigger">
-              <SelectValue
-                className="SelectValue"
-                placeholder="Select Status"
-              />
-            </SelectTrigger>
-            <SelectContent className="SelectContent">
-              <SelectItem value={"unconfirmed"}>
-                <div className="SelectItem">unconfirmed</div>
-              </SelectItem>
-              <SelectItem value={"confirmed"}>
-                <div className="SelectItem">confirmed</div>
-              </SelectItem>
-              <SelectItem value={"suspended"}>
-                <div className="SelectItem">suspended</div>
-              </SelectItem>
-              <SelectItem value={"removed"}>
-                <div className="SelectItem">removed</div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          {status === "confirmed" && (
-            <Button
-              className="removeAll"
-              variant="primary"
-              onClick={() => changeAllConfirmedUsersStatus("removed")}
-            >
-              Remove All
-            </Button>
-          )}
-        </div>
-        {users.map((user, index) => (
-          <React.Fragment key={user.email}>
-            <div className="ProjectItem">
-              <div className="ProjectName">
-                {user.name} ({user.email})
-              </div>
-              <Dialog>
-                <DialogTrigger className="DialogTrigger">
-                  <img className="Edit" src={Edit} />
-                </DialogTrigger>
-                <DialogContent className="DialogContentUserAdmin">
-                  <DialogHeader>
-                    <DialogTitle className="DialogTitle">
-                      Change User Status
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="EmailInput">
-                    <div className="userUserAdmin">User:</div>
-                    <div className="userContent">
-                      {user.name} ({user.email})
+        Promise.all(promises).then(() =>
+            email.toString() !== user.email.toString() ?
+                fetch(`http://localhost:3000/user/mail`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ "newEmail": email.toString(), "oldEmail": user.email.toString() })
+                    })
+                    .then(checkError)
+                    .catch(console.error) : null).then(() => onClose(true));
+    }
+
+    function onCancel() {
+        onClose(false);
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex size-full items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 text-left">
+            <div className="relative max-h-full w-full max-w-2xl p-4">
+                <div className="relative rounded-lg bg-white shadow">
+                    <div className="flex items-center justify-between rounded-t border-b p-5">
+                        <h3 className="text-xl font-semibold text-gray-900">
+                            Edit user
+                        </h3>
                     </div>
-                  </div>
-                  <div className="currentStatusMargin">
-                    <div className="currentStatusUserAdmin">
-                      Current Status:{" "}
+                    <div className="space-y-4 p-5">
+                        <form onSubmit={onSave}>
+                            <div className="mb-5">
+                                <label className="mb-2 block text-sm font-medium text-gray-900">Username</label>
+                                <input value={user.name} disabled={true} className="block w-full rounded-lg border border-gray-200 bg-gray-50 p-2.5 text-sm text-gray-500" />
+                            </div>
+                            <div className="mb-5">
+                                <label className="mb-2 block text-sm font-medium text-gray-900">Email</label>
+                                <input type="email" value={email.toString()} onChange={e => setEmail(new Email(e.target.value))} className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900" />
+                            </div>
+                            <div className="mb-5">
+                                <label className="mb-2 block text-sm font-medium text-gray-900">GitHub Username</label>
+                                <input value={githubUsername} onChange={e => setGithubUsername(e.target.value)} className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900" />
+                            </div>
+                            <div className="mb-5">
+                                <label className="mb-2 block text-sm font-medium text-gray-900">Status</label>
+                                <select value={status} onChange={e => setStatus(e.target.value)} className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900">
+                                    <option>unconfirmed</option>
+                                    <option>confirmed</option>
+                                    <option>suspended</option>
+                                    <option>removed</option>
+                                </select>
+                            </div>
+                            <div className="mb-5">
+                                <label className="mb-2 block text-sm font-medium text-gray-900">UserRole</label>
+                                <input value={userRole} onChange={e => setUserRole(e.target.value)} className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900" />
+                            </div>
+                            <div className="mb-5">
+                                <label className="mb-2 block text-sm font-medium text-gray-900">New Password</label>
+                                <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900" />
+                            </div>
+                        </form>
                     </div>
-                    <div className="userContent">{status}</div>
-                  </div>
-                  <div className="EmailInput">
-                    <div className="newStatusUserAdmin">New Status: </div>
-                    <div className="SelectWrapperUserAdminInsideDIalog">
-                      <Select onValueChange={(value) => setNewStatus(value)}>
-                        <SelectTrigger className="SelectTrigger">
-                          <SelectValue
-                            className="SelectValue"
-                            placeholder="Select Status"
-                          />
-                        </SelectTrigger>
-                        <SelectContent className="SelectContent">
-                          <SelectItem value={"unconfirmed"}>
-                            <div className="SelectItem">unconfirmed</div>
-                          </SelectItem>
-                          <SelectItem value={"confirmed"}>
-                            <div className="SelectItem">confirmed</div>
-                          </SelectItem>
-                          <SelectItem value={"suspended"}>
-                            <div className="SelectItem">suspended</div>
-                          </SelectItem>
-                          <SelectItem value={"removed"}>
-                            <div className="SelectItem">removed</div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="flex items-center rounded-b border-t border-gray-200 p-5">
+                        <button onClick={onSave} className="rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800">Save</button>
+                        <button onClick={onCancel} className="ms-3 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-700">Cancel</button>
                     </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      className="create"
-                      variant="primary"
-                      onClick={() => {
-                        if (newStatus) {
-                          handleUserStatusChange(user.email, newStatus);
-                        } else {
-                          setMessage(
-                            "Please select a status before confirming"
-                          );
-                        }
-                      }}
-                    >
-                      Confirm
-                    </Button>
-                    {status === "unconfirmed" && (
-                      <Button
-                        className="sendConfirmationEmail"
-                        variant="primary"
-                        onClick={() => sendConfirmationEmail(user.email)}
-                      >
-                        Send Confirmation Email
-                      </Button>
-                    )}
-                  </DialogFooter>
-                  {message && <div className="Message">{message}</div>}
-                </DialogContent>
-              </Dialog>
+                </div>
             </div>
-            {index < users.length - 1 && <hr className="ProjectDivider" />}
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
-  );
-};
+        </div>
+    );
+}
+
+const UserAdmin = () => {
+    const [users, setUsers] = useState<Array<User>>([]);
+    const [editing, setEditing] = useState<User | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    function fetchUsers() {
+        setLoading(true);
+        fetch(`http://localhost:3000/getUsers`, { method: "GET", headers: { "Content-Type": "application/json" }, })
+            .then(checkError)
+            .then((response: Response) => response.json())
+            .then((us: Array<User>) => setUsers(us))
+            .then(() => setLoading(false))
+            .catch(console.error);
+    }
+
+    function sendConfirmationEmail(user: User) {
+        fetch(`/user/confirmation/trigger`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userEmail: user.email.toString() }),
+        })
+          .then(checkError)
+          .catch(console.error);
+    }
+
+    const tableData = users.map(user => [
+        user.name,
+        user.email.toString(),
+        user.githubUsername ? user.githubUsername : "N/A",
+        user.status,
+        user.userRole,
+        <div key={user.id} className="flex flex-row gap-3">
+            <img className="h-5" src={Edit} title="edit" onClick={() => setEditing(user)}></img>
+            {user.status === "unconfirmed" && <img className="h-5" src={EmailIcon} title="send confirmation email" onClick={() => sendConfirmationEmail(user)}></img>}
+        </div>
+    ]);
+
+    return (
+        <>
+            <ReturnButton />
+            <div className="DashboardContainer">
+                <h1>User Admin</h1>
+            </div>
+            <div className="BigContainerUserAdmin">
+                <Table
+                    headings={["username", "email", "github username", "status", "userRole", "action"]}
+                    loading={loading}
+                    loadData={fetchUsers}
+                    data={tableData}
+                    rowsPerPage={9}
+                    filterOptions={{ key: 3, options: userStatus }}
+                />
+            </div>
+            {editing !== null && <UserEdit user={editing} onClose={(update) => { setEditing(null); if(update) fetchUsers(); }} />}
+        </>
+    );
+}
 
 export default UserAdmin;

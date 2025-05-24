@@ -29,14 +29,12 @@ const Happiness: React.FC = (): React.ReactNode => {
   const location = useLocation();
 
   const [projectName, setProjectName] = useState<string | null>("");
-  // @ts-ignore: suppress unused variable warning
-  const [userName, setUserName] = useState<string | null>(null);
   const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
   );
   const [activeTab, setActiveTab] = useState("User");
-  const [projectGroups, setProjectGroups] = useState<string[]>([]);
-  const [selectedProjectGroup, setSelectedProjectGroup] = useState<string>("");
+  const [courses, setCourses] = useState<string[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [values, setValues] = useState<DateObject[]>([]);
   const [happiness, setHappiness] = useState<number>(0);
   const [happinessData, setHappinessData] = useState<any[]>([]);
@@ -56,16 +54,16 @@ const Happiness: React.FC = (): React.ReactNode => {
     }
     const storedUserName = localStorage.getItem("username");
     if (storedUserName) {
-      setUserName(storedUserName);
+      setUser((prev) => prev && ({ ...prev , name: storedUserName }));
     }
   }, [location.state]);
 
   useEffect(() => {
-    const fetchProjectGroups = async () => {
+    const fetchCourses = async () => {
       try {
-        const response = await fetch("http://localhost:3000/project-groups");
+        const response = await fetch("http://localhost:3000/course");
         const data = await response.json();
-        setProjectGroups(data.map((item: any) => item.projectGroupName));
+        setCourses(data.map((item: any) => item.CourseName));
         console.log("Fetched project groups:", data);
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -73,7 +71,7 @@ const Happiness: React.FC = (): React.ReactNode => {
         }
       }
     };
-    fetchProjectGroups();
+    fetchCourses();
   }, []);
 
   useEffect(() => {
@@ -92,12 +90,12 @@ const Happiness: React.FC = (): React.ReactNode => {
 
   useEffect(() => {
     const fetchAllSprints = async () => {
-      if (!selectedProjectGroup) return;
+      if (!selectedCourse) return;
 
       try {
         const response = await fetch(
-          `http://localhost:3000/sprints?projectGroupName=${encodeURIComponent(
-            selectedProjectGroup
+          `http://localhost:3000/courseProject/sprints?courseName=${encodeURIComponent(
+            selectedCourse
           )}`
         );
         const sprints = await response.json();
@@ -114,7 +112,7 @@ const Happiness: React.FC = (): React.ReactNode => {
     };
 
     fetchAllSprints();
-  }, [selectedProjectGroup]);
+  }, [selectedCourse]);
 
   useEffect(() => {
     const fetchCurrentSprints = async () => {
@@ -122,7 +120,7 @@ const Happiness: React.FC = (): React.ReactNode => {
 
       try {
         const response = await fetch(
-          `http://localhost:3000/currentSprint?projectName=${encodeURIComponent(
+          `http://localhost:3000/courseProject/currentSprint?projectName=${encodeURIComponent(
             projectName
           )}`
         );
@@ -154,14 +152,14 @@ const Happiness: React.FC = (): React.ReactNode => {
 
     try {
       const response = await fetch(
-        "http://localhost:3000/happiness/createSprints",
+        "http://localhost:3000/courseProject/sprints",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            projectGroupName: selectedProjectGroup,
+            courseName: selectedCourse,
             dates: formattedDates,
           }),
         }
@@ -180,7 +178,7 @@ const Happiness: React.FC = (): React.ReactNode => {
 
   const handleHappinessSubmit = async () => {
     try {
-      await fetch("http://localhost:3000/happiness/saveHappiness", {
+      await fetch("http://localhost:3000/courseProject/happiness", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -201,7 +199,7 @@ const Happiness: React.FC = (): React.ReactNode => {
   const fetchHappinessData = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/getHappinessData?projectName=${encodeURIComponent(
+        `http://localhost:3000/courseProject/happiness?projectName=${encodeURIComponent(
           projectName ?? ""
         )}`
       );
@@ -226,9 +224,8 @@ const Happiness: React.FC = (): React.ReactNode => {
     ...new Set(happinessData.map((data) => data.userEmail)),
   ];
   uniqueEmails.forEach((email, index) => {
-    emailColors[email] = `hsl(${
-      (index * 360) / uniqueEmails.length
-    }, 100%, 50%)`;
+    emailColors[email] = `hsl(${(index * 360) / uniqueEmails.length
+      }, 100%, 50%)`;
   });
 
   const formattedData: { [sprintName: string]: any } = {};
@@ -278,7 +275,7 @@ const Happiness: React.FC = (): React.ReactNode => {
               <Select
                 onValueChange={(value) => {
                   console.log("Selected Project Group:", value);
-                  setSelectedProjectGroup(value);
+                  setSelectedCourse(value);
                 }}
               >
                 <SelectTrigger className="SelectTrigger">
@@ -288,7 +285,7 @@ const Happiness: React.FC = (): React.ReactNode => {
                   />
                 </SelectTrigger>
                 <SelectContent className="SelectContent">
-                  {projectGroups.map((group) => (
+                  {courses.map((group) => (
                     <SelectItem key={group} value={group}>
                       {group}
                     </SelectItem>

@@ -1,5 +1,6 @@
 import Settings from "./Settings";
 import ProjectConfig from "./ProjectConfig";
+import CourseParticipation from "./CourseParticipation";
 import "./Configuration.css";
 
 const Configuration = () => {
@@ -8,6 +9,9 @@ const Configuration = () => {
       <div className="ConfigbigContainer">
         <div className="ConfigComponents">
           <Settings />
+        </div>
+        <div className="ConfigComponents">
+          <CourseParticipation />
         </div>
         <div className="ConfigComponents">
           <ProjectConfig />

@@ -13,9 +13,10 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<string[]>([]);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>("ADMIN");
 
   const username = localStorage.getItem("username");
-
+  console.log("[Dashboard] username: ", username)
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -27,7 +28,7 @@ const Dashboard: React.FC = () => {
       if (userEmail) {
         try {
           const response = await fetch(
-            `http://localhost:3000/userProjects?userEmail=${userEmail}`
+            `http://localhost:3000/user/projects?userEmail=${userEmail}`
           );
           const data = await response.json();
           setProjects(
@@ -41,6 +42,27 @@ const Dashboard: React.FC = () => {
 
     fetchProjects();
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const userEmail = localStorage.getItem("email");
+      console.log("[Dashboard] userEmail: ", userEmail)
+      if (userEmail) {
+        try {
+          const response = await fetch(
+            `http://localhost:3000/user/role?userEmail=${userEmail}`
+          );
+          const data = await response.json();
+          console.log("[Dashboard] setUserRole: ", data.userRole)
+          setUserRole(data.userRole);
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+        }
+      }
+    };
+
+    fetchUserRole();
+  }, []);
 
   const handleProjectChange = (projectName: string) => {
     setSelectedProject(projectName);
@@ -74,16 +96,22 @@ const Dashboard: React.FC = () => {
     navigate("/settings");
   }
 
+  function goCourseParticipation() {
+    navigate("/course-participation");
+  }
+
   function goProjectConfig() {
     navigate("/project-config");
   }
-
+  function goUserPanel() {
+    navigate("/user-panel");
+  }
   function goUserAdmin() {
     navigate("/user-admin");
   }
 
-  function goProjectAdmin() {
-    navigate("/project-admin");
+  function goCourseAdmin() {
+    navigate("/course-admin");
   }
 
   return (
@@ -104,7 +132,7 @@ const Dashboard: React.FC = () => {
         <div className="Title">
           <h2>Projects</h2>
         </div>
-        <div className="ProjectsContainer">
+        <div className="ComponentContainer">
           <Select onValueChange={handleProjectChange}>
             <SelectTrigger className="SelectTriggerProject">
               <SelectValue placeholder="Select Project" />
@@ -117,41 +145,49 @@ const Dashboard: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
-          <div className="componentsContainer">
-            <div onClick={goToStandups} className="componentsProject">
+            <div onClick={goToStandups} className={"components" + (selectedProject ? "" : " disabled")}>
               Standups
             </div>
-            <div onClick={goHappiness} className="componentsProject">
+            <div onClick={goHappiness} className={"components" + (selectedProject ? "" : " disabled")}>
               Happiness
             </div>
-            <div onClick={goCodeActivity} className="componentsProject">
+            <div onClick={goCodeActivity} className={"components" + (selectedProject ? "" : " disabled")}>
               Code Activity
             </div>
-          </div>
         </div>
-        <div className="Title ConfigTitle">
+        <div className="Title">
           <h2>Configuration</h2>
         </div>
-        <div className="Container">
+        
+        <div className="ComponentContainer">
+          <div onClick={goUserPanel} className="components">
+              User profile
+          </div>
           <div onClick={goSettings} className="components">
             Settings
+          </div>
+          <div onClick={goCourseParticipation} className="components">
+            Course Participation
           </div>
           <div onClick={goProjectConfig} className="components">
             Project Config
           </div>
         </div>
 
-        <div className="Title AdminTitle">
-          <h2>Administration</h2>
+       {userRole === "ADMIN" && (
+        <>
+        <div className="Title">
+          <h2>System Administration</h2>
         </div>
-        <div className="Container">
+        <div className="ComponentContainer">
           <div onClick={goUserAdmin} className="components">
             User Admin
           </div>
-          <div onClick={goProjectAdmin} className="components">
-            Project Admin
+          <div onClick={goCourseAdmin} className="components">
+            Course Admin
           </div>
         </div>
+       </>)}
       </div>
     </div>
   );

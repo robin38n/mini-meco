@@ -3,7 +3,7 @@ describe('Settings Page End-to-End Test', () => {
     beforeEach(() => {
       cy.request({
         method: 'POST',
-        url: 'http://localhost:3000/login', 
+        url: 'http://localhost:3000/session', 
         body: {
           email: 'test@fau.edu',
           password: 'TestPassword123',
@@ -27,19 +27,22 @@ describe('Settings Page End-to-End Test', () => {
       cy.get('.DialogTrigger').eq(0).should('be.visible').click();
   
      
-      cy.get('.NewEmail-inputBox').clear().type('newtestemail@fau.edu');
+      cy.get('.NewEmail-inputBox').clear();
+      cy.get('.NewEmail-inputBox').type('newtestemail@fau.edu');
       cy.get('.create').contains('Change').click();
       cy.get('.Message').should('contain.text', 'Email changed successfully!');
   
       // Edit password
       cy.get('.DialogTrigger').eq(1).should('be.visible').click();
-      cy.get('.NewEmail-inputBox').clear().type('NewPassword123!');
+      cy.get('.NewEmail-inputBox').clear();
+      cy.get('.NewEmail-inputBox').type('NewPassword123!');
       cy.get('.create').contains('Change').click();
       cy.get('.Message').should('contain.text', 'Password changed successfully!');
   
       // Add GitHub Username
       cy.get('.DialogTrigger').eq(2).should('be.visible').click();
-      cy.get('.NewGitHubUsername-inputBox').clear().type('newGitHubUsername');
+      cy.get('.NewGitHubUsername-inputBox').clear();
+      cy.get('.NewGitHubUsername-inputBox').type('newGitHubUsername');
       cy.get('.create').contains('Save').click();
       cy.get('.Message').should('contain.text', 'GitHub Username added successfully!');
     });
@@ -52,7 +55,8 @@ describe('Settings Page End-to-End Test', () => {
         cy.get('.ProjectItem3').should('exist');      
         cy.get('.ProjectItem3 .Add').first().click();
         
-        cy.get('.ProjAdmin-inputBox').clear().type('Project Manager');
+        cy.get('.ProjAdmin-inputBox').clear();
+        cy.get('.ProjAdmin-inputBox').type('Project Manager');
         cy.contains('Join').click();
         
 

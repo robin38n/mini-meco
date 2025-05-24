@@ -74,10 +74,10 @@ const ProjectConfig: React.FC = () => {
       if (userEmail) {
         try {
           const response = await fetch(
-            `http://localhost:3000/enrolledCourses?userEmail=${userEmail}`
+            `http://localhost:3000/user/courses?userEmail=${userEmail}`
           );
           const data = await response.json();
-          setCourses(data.map((course: { projectGroupName: string }) => course.projectGroupName));
+          setCourses(data.map((course: { courseName: string }) => course.courseName));
         } catch (error) {
           console.error("Error fetching courses:", error);
         }
@@ -98,7 +98,7 @@ const ProjectConfig: React.FC = () => {
     if (userEmail) {
       try {
         const response = await fetch(
-          `http://localhost:3000/projectsForCourse?courseName=${courseName}&userEmail=${userEmail}`
+          `http://localhost:3000/course/courseProjects?courseName=${courseName}&userEmail=${userEmail}`
         );
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
@@ -110,7 +110,7 @@ const ProjectConfig: React.FC = () => {
         for (const project of data.enrolledProjects) {
           try {
             const roleResponse = await fetch(
-              `http://localhost:3000/roleForProject?projectName=${project.projectName}&userEmail=${userEmail}`
+              `http://localhost:3000/courseProject/user/role?projectName=${project.projectName}&userEmail=${userEmail}`
             );
 
             const roleData = await roleResponse.json();
@@ -147,7 +147,7 @@ const ProjectConfig: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/getGitURL?email=${localStorage.getItem(
+        `http://localhost:3000/user/project/url?email=${localStorage.getItem(
           "email"
         )}&project=${projectName}`,
         {
@@ -166,7 +166,6 @@ const ProjectConfig: React.FC = () => {
 
       const data = await response.json();
 
-
       if (data && data.url) {
         setURL(data.url || "");
       } else {
@@ -181,20 +180,17 @@ const ProjectConfig: React.FC = () => {
     const userEmail = localStorage.getItem("email");
     if (userEmail && selectedProject) {
       try {
-        const response = await fetch(
-          "http://localhost:3000/projConfig/addURL",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: userEmail,
-              URL: newURL,
-              project: selectedProject,
-            }),
-          }
-        );
+        const response = await fetch("http://localhost:3000/user/project/url", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userEmail: userEmail,
+            URL: newURL,
+            projectName: selectedProject,
+          }),
+        });
         const data = await response.json();
         if (!response.ok) {
           const errorData = await response.json();
@@ -222,12 +218,12 @@ const ProjectConfig: React.FC = () => {
       projectName,
       memberName: user.name,
       memberRole: role,
-      memberEmail: user.email,
+      memberEmail: user.email.toString(),
     };
 
     try {
       const response = await fetch(
-        "http://localhost:3000/projConfig/joinProject",
+        "http://localhost:3000/user/project",
         {
           method: "POST",
           headers: {
@@ -261,14 +257,14 @@ const ProjectConfig: React.FC = () => {
     }
     const body = {
       projectName,
-      memberEmail: user.email,
+      memberEmail: user.email.toString(),
     };
 
     try {
       const response = await fetch(
-        "http://localhost:3000/projConfig/leaveProject",
+        "http://localhost:3000/user/project",
         {
-          method: "POST",
+          method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
@@ -294,13 +290,13 @@ const ProjectConfig: React.FC = () => {
 
   const handleCreate = async (projectName: string) => {
     const body = {
-      projectGroupName: selectedCourse,
+      courseName: selectedCourse,
       projectName,
     };
 
     try {
       const response = await fetch(
-        `http://localhost:3000/projConfig/createProject`,
+        `http://localhost:3000/courseProject`,
         {
           method: "POST",
           headers: {
